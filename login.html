@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>{{ portal_title or "HospitalSavvy" }} | Sign in</title>
+
+    
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hms.css', v='20261115-login-workspace-panel-v1') }}">
+</head>
+
+<body class="login-page">
+
+<div class="login-container">
+
+    <section class="login-scene" aria-label="HospitalSavvy healthcare platform">
+        <div class="scene-orbit scene-orbit-one"></div>
+        <div class="scene-orbit scene-orbit-two"></div>
+        <div class="scene-content">
+            <div class="scene-mark" aria-hidden="true">
+                <span></span><span></span>
+            </div>
+            <p class="scene-eyebrow">CARE, CONNECTED</p>
+            <h2>Better care starts with a clearer picture.</h2>
+            <p class="scene-description">
+                One calm, connected workspace for the people who care for your community.
+            </p>
+            <div class="scene-landscape" aria-hidden="true">
+                <div class="scene-sun"></div>
+                <div class="scene-hill scene-hill-back"></div>
+                <div class="scene-hill scene-hill-front"></div>
+                <div class="scene-hospital">
+                    <div class="hospital-cross"><span></span><span></span></div>
+                    <div class="hospital-windows"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="scene-caption"><span></span> Supporting healthier communities</div>
+        </div>
+    </section>
+
+    <div class="login-card">
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <div class="login-header">
+
+            <div
+                id="setup-badge"
+                class="setup-badge hidden"
+            >
+                FIRST-TIME SETUP
+            </div>
+
+            <h1>
+                {{ portal_title or "HospitalSavvy" }}
+            </h1>
+
+            <p id="login-subtitle">Sign in to continue</p>
+
+        </div>
+
+        <!-- =================================================
+             NORMAL LOGIN
+        ================================================== -->
+
+        <form
+            id="hms-login-form"
+        >
+
+            <!-- USERNAME -->
+
+            <div class="form-group">
+
+                <label for="login-username">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="login-username"
+                    placeholder="Enter username"
+                    autocomplete="username"
+                    required
+                >
+
+            </div>
+
+            <!-- PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="login-password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="login-password"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                    required
+                >
+
+            </div>
+
+            <!-- LOGIN BUTTON -->
+
+            <button
+                type="submit"
+                id="login-button"
+                class="login-button"
+            >
+                Login
+            </button>
+
+        </form>
+
+        <!-- =================================================
+             INITIAL ADMIN SETUP
+        ================================================== -->
+
+        <form
+            id="initial-admin-form"
+            class="hidden"
+        >
+
+            <div class="form-group">
+
+                <label for="setup-username">
+                    System Admin Username
+                </label>
+
+                <input
+                    type="text"
+                    id="setup-username"
+                    placeholder="Create System Admin username"
+                    autocomplete="username"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="setup-password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="setup-password"
+                    placeholder="Create System Admin password"
+                    autocomplete="new-password"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="setup-confirm-password">
+                    Confirm Password
+                </label>
+
+                <input
+                    type="password"
+                    id="setup-confirm-password"
+                    placeholder="Confirm System Admin password"
+                    autocomplete="new-password"
+                    required
+                >
+
+            </div>
+
+            <button
+                type="submit"
+                id="setup-button"
+                class="login-button"
+            >
+                Create System Admin
+            </button>
+
+        </form>
+
+        <!-- =================================================
+             MESSAGES
+        ================================================== -->
+
+        <div
+            id="login-error"
+            class="login-error"
+            role="alert"
+        ></div>
+
+        <div
+            id="login-success"
+            class="login-success"
+            role="status"
+        ></div>
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <div class="login-footer">
+
+            HospitalSavvy
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="department-login-overlay" class="department-login-overlay" hidden>
+    <section class="department-login-panel" role="dialog" aria-modal="true" aria-labelledby="department-login-title">
+        <button type="button" id="department-login-close" class="department-login-close" aria-label="Close department selection">&times;</button>
+        <p class="department-login-eyebrow">WORKSPACE SELECTION</p>
+        <h2 id="department-login-title">Choose your department</h2>
+        <p id="department-login-role" class="department-login-role"></p>
+        <p class="department-login-copy">Select the department you are heading to for this session.</p>
+        <p id="department-login-error" class="department-login-error" role="alert" hidden></p>
+        <form id="department-login-form">
+            <div class="form-group" id="login-department-group" hidden>
+                <label for="login-department">Department for this session</label>
+                <select id="login-department" name="department_id">
+                    <option value="">Choose a department</option>
+                </select>
+            </div>
+            <button type="submit" id="department-login-button" class="login-button">Continue to workspace</button>
+        </form>
+    </section>
+</div>
+
+
+
+  <script src="{{ url_for('static', filename='js/hms.js', v='20261115-patient-files-scope-v5') }}" defer></script>
+</body>
+
+</html>

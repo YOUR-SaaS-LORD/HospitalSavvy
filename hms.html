@@ -1,0 +1,3215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Hospital Management System (HMS)</title>
+
+  <!-- HMS STATIC CSS -->
+  <!-- Additional styles for Secretariate, Procurement and Guidance & Counseling -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hms.css', v='20261116-doctor-round-save-hidden-v14') }}">
+</head>
+
+<body class="hms-page-{{ page_mode or 'hms' }}" data-page-mode="{{ page_mode or 'hms' }}">
+  <!-- =========================================================
+       MAIN CONTAINER
+  ========================================================== -->
+  <main id="main">
+
+    <header id="hms-main-header">
+      <div class="hms-header-left">
+        <button
+          type="button"
+          id="hms-home-btn"
+          class="btn hms-home-btn"
+          onclick="showHmsHome()"
+          hidden
+        >
+          &#8592; Home
+        </button>
+        <div class="hms-page-heading">
+          <span class="hms-active-label"> Active Role : </span>
+          <h2 id="current-module-title">Home</h2>
+          <small id="current-department-label" aria-live="polite"></small>
+        </div>
+      </div>
+      <label class="hms-department-switcher" id="hms-department-switcher-wrap" hidden>
+        <span>Heading department</span>
+        <select id="hms-department-switcher" aria-label="Change heading department"></select>
+      </label>
+
+      <button
+        type="button"
+        class="btn btn-danger"
+        onclick="hmsLogout()"
+      >
+        Logout
+      </button>
+    </header>
+
+    <div class="content-area">
+      <!-- Welcome banner shown on the Home launcher -->
+      <section id="hms-home-hero" aria-label="Welcome">
+        <div class="hero-eyebrow" id="hms-hero-eyebrow">MedicSavvy</div>
+        <h1 id="hms-hero-title">Welcome</h1>
+        <p id="hms-hero-sub">Choose a module below to get started.</p>
+        <div class="hero-meta" id="hms-hero-meta"></div>
+      </section>
+
+      <!-- Module launcher: one access tile per module (replaces the old sidebar). -->
+      <nav id="nav-container" class="hms-home" aria-label="HMS modules"></nav>
+
+      <!-- =====================================================
+           ADMIN DASHBOARD MODULE
+           Dashboard statistics, department workloads and live
+           patient clinical workflow tracker.
+      ====================================================== -->
+      <div id="mod-dash" class="module-view" hidden>
+  <div class="hms-tab-group" id="hospital-admin-tabs">
+    <div class="sub-tabs" role="tablist" aria-label="Hospital Administration">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" onclick="switchHmsNestedTab(this,'hospital-admin-dashboard')">Dashboard</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'hospital-admin-live-tracker')">Live Clinical Workflow Tracker</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'hospital-admin-disease-statistics')">Disease Statistics</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'hospital-admin-patient-files')">Patient Files</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'hospital-admin-stock-levels')">Stock & Expiry</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'hospital-admin-secretariate')">Secretariat</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'hospital-admin-forwarding')">Forwarding</button>
+    </div>
+    <section id="hospital-admin-dashboard" class="tab-content active" role="tabpanel">
+      <section aria-label="Hospital statistics" class="hms-main-stats-grid">
+<div class="card hms-stat-card hms-extracted-style-1" >
+<small>Patients Today</small>
+<div class="hms-stat-value" id="stat-patients">0</div>
+</div>
+<div class="card hms-stat-card hms-extracted-style-2" >
+<small>Waiting Queue</small>
+<div class="hms-stat-value" id="stat-waiting">0</div>
+</div>
+<div class="card hms-stat-card hms-extracted-style-3" >
+<small>Revenue Today</small>
+<div class="hms-stat-value" id="stat-revenue">$0.00</div>
+</div>
+<div class="card hms-stat-card">
+<small>Available Beds</small>
+<div class="hms-stat-value secondary" id="stat-beds">0 / 0</div>
+</div>
+<div class="card hms-stat-card">
+<small>Staff On Duty / Total Staff</small>
+<div class="hms-stat-value secondary" id="stat-staff-count">0 / 0</div>
+</div>
+<div class="card hms-stat-card">
+<small>Admissions Today</small>
+<div class="hms-stat-value secondary" id="stat-admissions">0</div>
+</div>
+<div class="card hms-stat-card">
+<small>Discharges Today</small>
+<div class="hms-stat-value secondary" id="stat-discharges">0</div>
+</div>
+<div class="card hms-stat-card">
+<small>Funds Used Today</small>
+<div class="hms-stat-value secondary" id="admin-funds-used-today">Loading…</div>
+</div>
+</section>
+      <section aria-label="Department workloads" class="hms-workload-grid">
+<div class="card hms-workload-card hms-extracted-style-4" >
+<small>Triage Workload</small>
+<div class="hms-workload-value pending" id="stat-triage-workload">0 Pending</div>
+</div>
+<div class="card hms-workload-card hms-extracted-style-5" >
+<small>Doctor Workload</small>
+<div class="hms-workload-value pending" id="stat-doctor-workload">0 Pending</div>
+</div>
+<div class="card hms-workload-card hms-extracted-style-6" >
+<small>Laboratory Workload</small>
+<div class="hms-workload-value pending" id="stat-lab-workload">0 Pending</div>
+</div>
+<div class="card hms-workload-card hms-extracted-style-7" >
+<small>Radiology Workload</small>
+<div class="hms-workload-value pending" id="stat-rad-workload">0 Pending</div>
+</div>
+<div class="card hms-workload-card hms-extracted-style-8" >
+<small>Pharmacy Workload</small>
+<div class="hms-workload-value pending" id="stat-pharm-workload">0 Pending</div>
+</div>
+<div class="card hms-workload-card hms-extracted-style-9" >
+<small>Operating Theatre Workload</small>
+<div class="hms-workload-value pending" id="stat-theatre-workload">0 Pending</div>
+</div>
+<div class="card hms-workload-card hms-extracted-style-10" >
+<small>Nursing / Ward Workload</small>
+<div class="hms-workload-value pending" id="stat-nurse-workload">0 Under Care</div>
+</div>
+<div class="card hms-workload-card">
+<small>Guidance &amp; Counseling Workload</small>
+<div class="hms-workload-value pending" id="stat-guidance-workload">0 Pending</div>
+</div>
+</section>
+
+    </section>
+    <section id="hospital-admin-live-tracker" class="tab-content" role="tabpanel">
+      <section class="card hms-workflow-tracker">
+<div class="card-header">Live Patient Clinical Workflow Tracker</div>
+<p class="hms-tracker-note">Live overview of patient progress through the hospital. Removing a row hides it from this tracker only; it does not delete the patient or medical records.</p>
+<div class="table-container hms-workflow-table-container">
+<table class="hms-workflow-table">
+<thead>
+<tr>
+<th>Patient ID</th>
+<th>Patient Name</th>
+<th>Current Stage</th>
+<th>Priority</th>
+<th>Vitals</th>
+<th>Diagnosis</th>
+<th>Billing / Balance</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="dash-workflow-table">
+<tr><td class="hms-dashboard-loading" colspan="8">Loading dashboard data from database...</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+    </section>
+    <section id="hospital-admin-disease-statistics" class="tab-content" role="tabpanel">
+      <div class="card hms-admin-window">
+        <div class="card-header">Disease Statistics</div>
+        <p class="hms-muted">Diagnosis counts are read from saved clinical diagnoses. New diagnoses appear automatically when this view refreshes.</p>
+        <div class="hms-admin-filter-row"><label for="hms-disease-period">Reporting period</label><select id="hms-disease-period"><option value="1m">1 month</option><option value="3m" selected>3 months</option><option value="6m">6 months</option><option value="1y">1 year</option></select><button type="button" class="btn btn-primary" id="hms-disease-refresh">Refresh graph</button></div>
+        <div class="hms-chart-wrap"><canvas id="hms-disease-chart" height="320" aria-label="Disease statistics bar graph"></canvas></div>
+        <p id="hms-disease-summary" class="hms-muted" aria-live="polite">Loading diagnosis statistics…</p>
+        <div class="table-container"><table><thead><tr><th>Disease / diagnosis</th><th>Cases in period</th></tr></thead><tbody id="hms-disease-table"><tr><td colspan="2">Loading…</td></tr></tbody></table></div>
+      </div>
+    </section>
+    <section id="hospital-admin-patient-files" class="tab-content" role="tabpanel">
+      <div class="card hms-admin-window">
+        <div class="card-header">Patient Files & Journey</div>
+        <label for="hms-patient-file-search">Find patient by ID, name, patient number or phone</label><input id="hms-patient-file-search" type="text" autocomplete="off" placeholder="Start typing a patient ID or name…">
+        <div id="hms-patient-file-matches" class="hms-patient-match-list" aria-live="polite"></div>
+        <div id="hms-patient-journey-title" class="hms-patient-journey-title">Select a patient to view their journey.</div>
+        <div class="hms-journey-print-actions no-print"><button type="button" class="btn btn-secondary" onclick="printPatientJourney('admin')">Print Patient File</button></div>
+        <div class="hms-journey-period-filters no-print" data-journey-filter="admin">
+          <label>Period <select id="hms-journey-period"><option value="all">All records</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="3m">Last 3 months</option><option value="6m">Last 6 months</option><option value="1y">Last year</option><option value="custom">Custom dates</option></select></label>
+          <label>From <input type="date" id="hms-journey-from"></label><label>To <input type="date" id="hms-journey-to"></label>
+          <button type="button" class="btn btn-secondary" id="hms-journey-apply">Apply period</button>
+        </div>
+        <div id="hms-patient-journey" class="hms-patient-document-store" aria-live="polite"><p class="hms-muted">No patient selected.</p></div>
+      </div>
+    </section>
+
+    <section id="hospital-admin-stock-levels" class="tab-content" role="tabpanel" hidden>
+      <section class="card hms-admin-stock-card" aria-label="Stock and expiry ledger">
+        <div class="card-header">Stock Control Ledger</div>
+        <div class="hms-admin-filter-row no-print">
+          <label for="admin-stock-status-filter">Show</label>
+          <select id="admin-stock-status-filter"><option value="all">All stock</option><option value="low">At/about reorder level</option><option value="expiring">Expiring within specified period</option></select>
+          <label for="admin-stock-expiry-days">Expiry period (days)</label>
+          <input type="number" id="admin-stock-expiry-days" min="1" max="3650" value="90" aria-label="Number of days until expiry">
+        </div>
+        <p id="admin-stock-filter-summary" class="hms-muted" aria-live="polite">Loading stock ledger…</p>
+        <section class="ledger-category ledger-drug-stock"><div class="ledger-category-header">💊 Drug Stock</div><div class="ledger-table-wrapper"><table><thead><tr><th>Code</th><th>Name</th><th>Valuation Method</th><th>Stock</th><th>Reorder Level</th><th>Supplier</th></tr></thead><tbody id="admin-stock-drug-table"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></section>
+        <section class="ledger-category ledger-medical-supplies"><div class="ledger-category-header">🩹 Medical Supplies</div><div class="ledger-table-wrapper"><table><thead><tr><th>Code</th><th>Name</th><th>Valuation Method</th><th>Stock</th><th>Reorder Level</th><th>Supplier</th></tr></thead><tbody id="admin-stock-supplies-table"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></section>
+        <section class="ledger-category ledger-equipment"><div class="ledger-category-header">⚙️ Equipment</div><div class="ledger-table-wrapper"><table><thead><tr><th>Code</th><th>Name</th><th>Valuation Method</th><th>Stock</th><th>Reorder Level</th><th>Supplier</th></tr></thead><tbody id="admin-stock-equipment-table"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></section>
+      </section>
+    </section>
+    <section id="hospital-admin-forwarding" class="tab-content" role="tabpanel" hidden><div class="card department-chat-panel" data-department-chat><div class="card-header">Forwarding</div><p class="hms-office-intro">WhatsApp-style shared conversation for Hospital Administration, Finance and Procurement. Send a message and optional attachment together.</p><form data-chat-send-form enctype="multipart/form-data"><div class="department-chat-compose-row"><label>Send to<select name="recipient_department" required><option value="">Choose department</option><option value="hospital_administration">Hospital Administration</option><option value="accounts">Finance</option><option value="procurement">Procurement</option></select></label><div class="department-chat-file-controls"><label>Attach any file (optional)<input name="file" type="file"></label><button class="btn btn-secondary" type="button" data-chat-store-picker>Choose from Secretariat Document Store</button><span data-chat-selected-store-file>No document selected from the store.</span><input type="hidden" name="secretariate_document_id" value=""><input type="hidden" name="convert_to_pdf" value="yes"></div></div><textarea name="message" rows="3" maxlength="10000" placeholder="Type a message…"></textarea><label class="department-chat-title-label">Attachment title<input name="title" maxlength="240" placeholder="Optional title"></label><p class="hms-muted">Files and Secretariat documents are converted to PDF before forwarding.</p><p class="hms-muted">Each forwarding adds one signed-by stamp with your name, role and date on the document.</p><div class="department-chat-actions"><button class="btn btn-primary" type="submit">Send</button><button class="btn btn-secondary" type="button" data-chat-refresh>Refresh</button></div></form><div data-chat-status role="status" aria-live="polite"></div><h4>Conversation history</h4><div class="department-chat-history" data-chat-history>Loading conversation…</div></div></section>
+    <section id="hospital-admin-secretariate" class="tab-content" role="tabpanel" hidden>
+
+  <div class="hms-standalone-launch-row no-print">
+    <div><strong>Secretariate</strong><span>Official correspondence, records and communication templates.</span></div>
+  </div>
+  <div class="hms-tab-group" id="secretariate-tabs">
+    <div class="sub-tabs" role="tablist" aria-label="Secretariate">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" onclick="switchHmsNestedTab(this,'secretariate-document-templates')">Document Templates</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'secretariate-document-store')">Document Store</button>
+    </div>
+    <section id="secretariate-document-templates" class="tab-content active" role="tabpanel">
+      <div class="card hms-office-card">
+        <div class="card-header">Secretariate — Document Templates</div>
+        <p class="hms-office-intro">Choose a template to load the correct prompts and fields. Enter your details, preview the document, print it, or save it in the Secretariate Document Store.</p>
+        <div class="hms-office-template-grid" id="hmsOfficeTemplateGrid">
+          <button type="button" class="hms-office-template" data-office-type="statement"><strong>Statements</strong><span>Official, personal or organizational statement</span></button>
+          <button type="button" class="hms-office-template" data-office-type="letter"><strong>Letters</strong><span>Formal, informal, request, complaint or response</span></button>
+          <button type="button" class="hms-office-template" data-office-type="memo"><strong>Memos</strong><span>Internal memorandum</span></button>
+          <button type="button" class="hms-office-template" data-office-type="circular"><strong>Circulars</strong><span>Notice circulated to a group</span></button>
+          <button type="button" class="hms-office-template" data-office-type="report"><strong>Reports</strong><span>Incident, activity, inspection or progress report</span></button>
+          <button type="button" class="hms-office-template" data-office-type="speech"><strong>Speeches</strong><span>Welcome, farewell, informative or ceremonial speech</span></button>
+          <button type="button" class="hms-office-template" data-office-type="minutes"><strong>Minutes</strong><span>Meeting attendance, discussions and resolutions</span></button>
+          <button type="button" class="hms-office-template" data-office-type="evaluation"><strong>Evaluations</strong><span>Activity, programme, service or performance evaluation</span></button>
+          <button type="button" class="hms-office-template" data-office-type="interview"><strong>Interviews</strong><span>Interview record and question/answer notes</span></button>
+          <button type="button" class="hms-office-template" data-office-type="questionnaire"><strong>Questionnaires</strong><span>Survey questions and response options</span></button>
+          <button type="button" class="hms-office-template" data-office-type="manual"><strong>Manuals</strong><span>Purpose, scope, steps and procedures</span></button>
+          <button type="button" class="hms-office-template" data-office-type="directions"><strong>Directions</strong><span>Route, location or step-by-step directions</span></button>
+          <button type="button" class="hms-office-template" data-office-type="campaign"><strong>Campaign Messages</strong><span>Awareness, prevention or public campaign</span></button>
+          <button type="button" class="hms-office-template" data-office-type="warning"><strong>Warning Notices</strong><span>Hazard, risk, restriction and required action</span></button>
+          <button type="button" class="hms-office-template" data-office-type="requisition"><strong>Requisition</strong><span>Request supplies, equipment or services with priority and approval details</span></button>
+        </div>
+      </div>
+      <div class="card hms-office-card" id="hmsOfficeFormCard">
+        <div class="card-header" id="hmsOfficeFormTitle">Choose a document template</div>
+        <form id="hmsOfficeForm">
+          <input type="hidden" id="hmsOfficeType">
+          <div class="hms-office-fields">
+            <div class="hms-office-reference-note" aria-live="polite"><strong>Reference number</strong><span>Automatically assigned when this document is saved.</span></div>
+            <label id="hmsOfficeDateWrap">Document date<input id="hmsOfficeDate" type="date" required></label>
+            <label id="hmsOfficeOrganizationWrap">Organization / facility<input id="hmsOfficeOrganization" placeholder="Organization, school, hospital or group"></label>
+            <label id="hmsOfficeAuthorWrap">Prepared by / author<input id="hmsOfficeAuthor" placeholder="Name and role"></label>
+            <label id="hmsOfficeRecipientWrap">Recipient / audience<textarea id="hmsOfficeRecipient" rows="2" placeholder="Person, department, committee or audience"></textarea></label>
+            <label id="hmsOfficeSubjectWrap">Title / subject<input id="hmsOfficeSubject" required placeholder="Document title or subject"></label>
+            <div id="hmsOfficeSpecificFields" class="hms-office-fields hms-office-specific"></div>
+            <label class="hms-office-full" id="hmsOfficeBodyLabel">Main content<textarea id="hmsOfficeBody" rows="8" required placeholder="Write the main content here..."></textarea></label>
+            <label class="hms-office-full" id="hmsOfficeActionsLabel">Actions, recommendations or conclusion<textarea id="hmsOfficeActions" rows="4" placeholder="Optional actions, recommendations, resolutions or conclusion"></textarea></label>
+            <label id="hmsOfficeApproverWrap">Approved / signed by<input id="hmsOfficeApprover" placeholder="Name and title, if required"></label>
+            <label id="hmsOfficeAttachmentsWrap">Distribution / attachments<textarea id="hmsOfficeAttachments" rows="2" placeholder="Optional"></textarea></label>
+          </div>
+          <div class="hms-office-actions no-print">
+            <button type="button" class="btn btn-primary" id="hmsOfficePreviewBtn">Preview</button>
+            <button type="button" class="btn btn-success" id="hmsOfficeSaveBtn">Save to Document Store</button>
+            <button type="reset" class="btn" id="hmsOfficeClearBtn">Clear</button>
+          </div>
+        </form>
+      </div>
+      <div class="card hms-office-card" id="hmsOfficePreviewPanel" hidden>
+        <div class="card-header">Document View / Print Preview</div><div id="hmsOfficePreview" class="hms-office-preview-host"></div>
+        <div class="hms-office-actions no-print"><button type="button" class="btn btn-primary" id="hmsOfficePrintBtn">Print Document</button><button type="button" class="btn" id="hmsOfficeClosePreview">Close Preview</button></div>
+      </div>
+    </section>
+    <section id="secretariate-document-store" class="tab-content" role="tabpanel" hidden>
+      <div class="card hms-office-card">
+        <div class="card-header">Secretariate Document Store</div>
+        <p class="hms-office-intro">Search and manage saved documents. Use View for a clean document layout or Print for a professional printout. Saved documents are shown as finished documents, not as editable form fields.</p>
+        <div class="hms-office-bizdoc-store-controls no-print">
+          <input type="search" id="hmsOfficeSearch" placeholder="Search documents..." aria-label="Search saved Secretariate documents">
+          <select id="hmsOfficeFilter" aria-label="Filter by document type"><option value="">All Document Types</option></select>
+          <label class="hms-office-date-filter">Date from<input id="hmsOfficeDateFrom" type="date" aria-label="Filter from document date"></label>
+          <label class="hms-office-date-filter">Date to<input id="hmsOfficeDateTo" type="date" aria-label="Filter to document date"></label>
+          <label class="hms-office-date-filter">Month<select id="hmsOfficeMonth" aria-label="Filter by month"><option value="">All months</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></label>
+          <label class="hms-office-date-filter">Year<input id="hmsOfficeYear" type="number" min="1900" max="2200" step="1" placeholder="Any year" aria-label="Filter by year"></label>
+          <button type="button" class="btn" id="hmsOfficeClearFilters">Clear Filters</button>
+        </div>
+        <div id="hmsOfficeStoreCount" class="hms-office-store-count">0 documents</div>
+        <div id="hmsOfficeStoreList"><div class="hms-office-bizdoc-empty">No documents have been saved yet.</div></div>
+      </div>
+      <div class="card hms-office-card" id="hmsOfficeStoredViewPanel" hidden>
+        <div class="card-header">Saved Document — View / Print</div>
+        <div id="hmsOfficeStoredView" class="hms-office-preview-host"></div>
+        <div class="hms-office-actions no-print"><button type="button" class="btn btn-primary" id="hmsOfficeStoredPrintBtn">Print Document</button><button type="button" class="btn" id="hmsOfficeStoredCloseBtn">Close View</button></div>
+      </div>
+    </section>
+  </div>
+</section>
+      </div>
+    </div>
+    <!-- END ADMIN DASHBOARD MODULE -->
+
+<div id="mod-guidance-counseling" class="module-view" hidden>
+  <div class="hms-standalone-launch-row no-print"><div><strong>Guidance &amp; Counseling</strong><span>Independent module with its own intake, referrals, counseling sessions, follow-up, resources and activity summaries.</span></div></div>
+  <div class="hms-tab-group" id="guidance-counseling-tabs">
+    <div class="sub-tabs" role="tablist" aria-label="Guidance and Counseling">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" onclick="switchHmsNestedTab(this,'gc-overview')">Overview</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'gc-intake-referrals')">Intake &amp; Referrals</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'gc-sessions')">Counseling Sessions</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'gc-follow-up')">Follow-up</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'gc-journey-store')">Patient Journey Store</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'gc-resources')">Resources &amp; Guidance</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'gc-reports')">Activity Summary</button>
+    </div>
+    <section id="gc-overview" class="tab-content active" role="tabpanel"><div class="card hms-office-card"><div class="card-header">Guidance &amp; Counseling Overview</div><p class="hms-office-intro">Manage intake, counseling sessions, follow-up actions and approved guidance resources.</p><div class="hms-gc-stat-grid"><div><strong id="gcCountIntake">0</strong><span>Intake / referrals</span></div><div><strong id="gcCountSessions">0</strong><span>Session records</span></div><div><strong id="gcCountFollowup">0</strong><span>Follow-up actions</span></div></div><div class="hms-office-actions"><button class="btn btn-primary" type="button" id="gcGoIntake">Record intake / referral</button><button class="btn" type="button" id="gcGoSessions">Record session</button></div></div></section>
+    <section id="gc-intake-referrals" class="tab-content" role="tabpanel"><div class="card hms-office-card"><div class="card-header">Intake &amp; Referrals</div><form id="gcIntakeForm"><div class="hms-office-fields"><label>Doctor-referred patient<select id="gcIntakePatientSelect" required><option value="">Select a patient from Doctor referrals</option></select></label><label>Record reference<input id="gcIntakeReference" name="reference" required placeholder="Reference number"></label><label>Date<input name="date" type="date" required></label><label>Person / case label<input id="gcIntakeCaseLabel" name="case_label" required placeholder="Use minimum identifying information"></label><label>Referral source<select name="source"><option>Doctor referral</option><option>Self-referral</option><option>Staff referral</option><option>Family / caregiver</option><option>School / community</option><option>Clinical team</option><option>Other</option></select></label><label>Support area<select name="support_area"><option>Emotional wellbeing</option><option>Family / relationship</option><option>Education / learning</option><option>Substance-use support</option><option>Grief / loss</option><option>Social / financial support</option><option>Safeguarding concern</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Routine</option><option>Prompt</option><option>Urgent — follow local escalation protocol</option></select></label><label class="hms-office-full">Reason for referral / presenting concern<textarea name="concern" rows="4" required></textarea></label><label class="hms-office-full">Initial action / referral destination<textarea name="action" rows="3"></textarea></label><label>Status<select name="status"><option>New</option><option>Assigned</option><option>Referred</option><option>In progress</option><option>Closed</option></select></label><label>Assigned counselor<input name="assigned_to"></label></div><div class="hms-office-actions"><button type="submit" class="btn btn-primary">Save Intake / Referral</button><button type="reset" class="btn">Clear</button></div></form></div></section>
+    <section id="gc-sessions" class="tab-content" role="tabpanel"><div class="card hms-office-card"><div class="card-header">Counseling Session Record</div><form id="gcSessionForm"><div class="hms-office-fields"><label>Patient with saved intake<select id="gcSessionPatientSelect" required><option value="">Select a patient with saved intake</option></select></label><label>Case reference<input id="gcSessionReference" name="reference" required></label><label>Patient / case name<input id="gcSessionClientName" name="client_name" required></label><label>Session date<input name="date" type="date" required></label><label>Session number<input name="session_number" type="number" min="1" value="1"></label><label>Session type<select name="session_type"><option>Individual</option><option>Family</option><option>Group</option><option>Telephone / remote</option><option>Other</option></select></label><label>Attending counselor<input name="counselor"></label><label>Duration (minutes)<input name="duration" type="number" min="0"></label><label class="hms-office-full">Session summary (minimum necessary detail)<textarea name="summary" rows="5" required></textarea></label><label class="hms-office-full">Agreed goals / actions<textarea name="goals" rows="3"></textarea></label><label>Risk / safeguarding escalation needed?<select name="escalation"><option>No</option><option>Yes — follow local safeguarding / emergency protocol</option><option>Requires supervisor review</option></select></label><label>Next session date<input name="next_date" type="date"></label></div><div class="hms-office-actions"><button type="submit" class="btn btn-primary">Save Session</button><button type="reset" class="btn">Clear</button></div></form></div></section>
+    <section id="gc-follow-up" class="tab-content" role="tabpanel"><div class="card hms-office-card"><div class="card-header">Follow-up Actions</div><form id="gcFollowForm"><div class="hms-office-fields"><label>Patient with saved counseling session<select id="gcFollowPatientSelect" required><option value="">Select a patient with saved session</option></select></label><label>Case reference<input id="gcFollowReference" name="reference" required></label><label>Patient / case name<input id="gcFollowClientName" name="client_name" required></label><label>Due date<input name="due_date" type="date" required></label><label>Assigned to<input name="assigned_to"></label><label>Status<select name="status"><option>Pending</option><option>Contact attempted</option><option>Completed</option><option>Escalated</option><option>Rescheduled</option></select></label><label class="hms-office-full">Follow-up action / outcome<textarea name="action" rows="4" required></textarea></label><label>Next review date<input name="next_date" type="date"></label></div><div class="hms-office-actions"><button type="submit" class="btn btn-primary">Save Follow-up</button><button type="reset" class="btn">Clear</button></div></form></div></section>
+    <section id="gc-journey-store" class="tab-content" role="tabpanel"><div class="card hms-office-card"><div class="card-header">Patient Guidance &amp; Counseling Journey Store</div><p class="hms-office-intro">Track each doctor referral through intake, counseling sessions and follow-up. Patients move to the next stage after the preceding record is saved.</p><div class="hms-gc-store-filters"><label class="hms-gc-store-filter">Filter by patient name or patient ID<input id="gcStorePatientFilter" type="search" placeholder="Enter patient name or ID" autocomplete="off"></label><label class="hms-gc-store-filter">Filter by saved record type<select id="gcStoreTypeFilter"><option value="all">All patient record types</option><option value="Doctor Referral">Doctor Referral</option><option value="Intake / Referral">Intake / Referral</option><option value="Counseling Session">Counseling Session</option><option value="Follow-up">Follow-up</option></select></label></div><div id="gcJourneyStore" class="hms-office-store-list" aria-live="polite"></div><div class="card-header gc-store-records-heading">All Saved Records</div><div id="gcStoredRecords" class="hms-office-store-list" aria-live="polite"></div></div></section><section id="gc-resources" class="tab-content" role="tabpanel"><div class="card hms-office-card"><div class="card-header">Resources &amp; Guidance Library</div><p class="hms-office-intro">Add approved non-clinical guidance materials, support contacts and referral pathways. Confirm local emergency and safeguarding contacts before relying on them.</p><form id="gcResourceForm"><div class="hms-office-fields"><label>Resource title<input name="title" required></label><label>Category<select name="category"><option>Wellbeing</option><option>Family support</option><option>Education</option><option>Substance-use support</option><option>Safeguarding</option><option>Community services</option><option>Emergency contact</option><option>Other</option></select></label><label>Contact / organization<input name="contact"></label><label>Phone / email / URL<input name="details"></label><label class="hms-office-full">Description / when to use<textarea name="description" rows="3"></textarea></label></div><div class="hms-office-actions"><button type="submit" class="btn btn-primary">Save Resource</button></div></form></div></section>
+    <section id="gc-reports" class="tab-content" role="tabpanel"><div class="card hms-office-card"><div class="card-header">Guidance &amp; Counseling Activity Summary</div><p class="hms-office-intro">Summary counts reflect the saved Guidance &amp; Counseling records available to this module. They are not a clinical outcome report.</p><div id="gcSummaryContent"></div><div class="hms-office-actions"><button class="btn btn-primary" type="button" id="gcPrintSummary">Print Summary</button></div></div></section>
+  </div>
+
+      <!-- =====================================================
+           1. ADMINISTRATION MODULE
+      ====================================================== -->
+      <div id="mod-admin" class="module-view">
+        <div class="sub-tabs">
+          <button class="tab-btn active" onclick="switchSubTab(this,'admin-pt-mgt')">Patient Mgt</button>
+          <button class="tab-btn" onclick="switchSubTab(this,'admin-usr-mgt')">User Mgt</button>
+          <button class="tab-btn" onclick="switchSubTab(this,'admin-setup')">Hospital Setup</button>
+          <button class="tab-btn" onclick="switchSubTab(this,'admin-staff')">Staff Mgt</button>
+          <button class="tab-btn" onclick="switchSubTab(this,'admin-sec')">Security & Backup</button>
+        </div>
+
+        <!-- =========================================================
+        PATIENT MANAGEMENT
+        ========================================================= -->
+
+        <div id="admin-pt-mgt" class="tab-content active">
+
+          <div class="card">
+
+            <div class="card-header">
+              Patient Management & Master Records
+            </div>
+
+            <div class="grid-2">
+
+            <!-- =================================================
+                 PATIENT DETAILS
+            ================================================== -->
+
+            <div>
+
+                <form
+                    id="admin-patient-update-form"
+                    onsubmit="adminUpdatePatient(event)"
+                >
+
+                    <div class="form-group">
+
+                        <label>
+                            Select Patient
+                        </label>
+
+                        <select
+                            id="admin-pt-select"
+                            onchange="loadAdminPtData()"
+                            required
+                        >
+
+                            <option value="">
+                                Loading patients...
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Patient ID
+                        </label>
+
+                        <input
+                            type="text"
+                            id="adm-pt-id"
+                            readonly
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="adm-pt-name"
+                            maxlength="200"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Date of Birth
+                        </label>
+
+                        <input
+                            type="date"
+                            id="adm-pt-dob"
+                            readonly
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Gender
+                        </label>
+
+                        <input
+                            type="text"
+                            id="adm-pt-gender"
+                            readonly
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Phone
+                        </label>
+
+                        <input
+                            type="text"
+                            id="adm-pt-phone"
+                            maxlength="50"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+                        <label>National ID (optional)</label>
+                        <input type="text" id="adm-pt-national-id" maxlength="50">
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Status
+                        </label>
+
+                        <input
+                            type="text"
+                            id="adm-pt-status"
+                            readonly
+                        >
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="admin-patient-update-btn"
+                    >
+                        Update Details
+                    </button>
+
+                </form>
+
+            </div>
+
+            <!-- =================================================
+                 MERGE DUPLICATE
+            ================================================== -->
+
+            <div>
+
+                <div
+                    class="card hms-extracted-style-11"
+                    
+                >
+
+                    <h4>
+                        Merge Duplicate Records
+                    </h4>
+
+                    <p>
+                        Select the patient record that should
+                        remain active, then enter the Patient ID
+                        of the duplicate record.
+                    </p>
+
+                    <div class="form-group">
+
+                        <label>
+                            Primary Patient
+                        </label>
+
+                        <input
+                            type="text"
+                            id="adm-merge-primary"
+                            readonly
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Duplicate Patient ID
+                        </label>
+
+                        <input
+                            type="text"
+                            id="adm-merge-target"
+                            maxlength="30"
+                            placeholder="e.g. P-1002"
+                        >
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-warning"
+                        onclick="mergePatientRecord()"
+                    >
+                        Merge Into Selected Patient
+                    </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+        <!-- USER MANAGEMENT -->
+        <div id="admin-usr-mgt" class="tab-content">
+          <div class="card">
+            <div class="card-header">User & Access Control</div>
+            <div class="grid-2">
+              <form onsubmit="addUser(event)">
+
+    <div class="form-group">
+        <label>Username</label>
+        <input
+            type="text"
+            id="u-name"
+            required
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input
+            type="password"
+            id="u-password"
+            autocomplete="new-password"
+            required
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Role</label>
+        <select id="u-role" required>
+
+            <option value="">Select Role</option>
+
+            <option value="doctor">
+                Doctor
+            </option>
+
+            <option value="nurse">
+                Nurse
+            </option>
+
+            <option value="labtech">
+                Lab Tech
+            </option>
+
+            <option value="pharmacist">
+                Pharmacist
+            </option>
+
+            <option value="radiologist">
+                Radiologist
+            </option>
+
+            <option value="surgeon">
+                Surgeon
+            </option>
+
+            <option value="opd">
+                OPD
+            </option>
+
+            <option value="receptionist">
+                Receptionist
+            </option>
+
+            <option value="accountant">
+                Finance Officer
+            </option>
+
+            <option value="system_admin">System Admin</option>
+            <option value="hospital_manager">Hospital Manager</option>
+            <option value="procurement_officer">Procurement Officer</option>
+            <option value="secretary">Secretary</option>
+            <option value="guidance_counselor">Counselor</option>
+
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-success"
+        >
+        Create User Account
+        </button>
+
+      </form>
+              <div>
+                <h4>Active System User Finance</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-table"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <!-- =========================================================
+        HOSPITAL SETUP
+        ========================================================= -->
+
+        <div id="admin-setup" class="tab-content">
+
+          <div class="card">
+
+            <div class="card-header">
+              Hospital Infrastructure & Services Setup
+            </div>
+
+          <div class="grid-3">
+
+            <!-- =================================================
+                 DEPARTMENTS & CLINICS
+            ================================================== -->
+
+            <div>
+
+                <h4>
+                    Departments & Clinics
+                </h4>
+
+                <form onsubmit="addDepartment(event)">
+
+                    <div class="form-group">
+
+                        <input
+                            type="text"
+                            id="cfg-dept-name"
+                            placeholder="Department / Clinic Name"
+                            required
+                        >
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Add Department / Clinic
+                    </button>
+
+                </form>
+
+                <ul
+                    id="cfg-dept-list"
+                    class="hms-extracted-style-12"
+                ></ul>
+
+            </div>
+
+            <!-- =================================================
+                 WARDS & BEDS
+            ================================================== -->
+
+            <div>
+
+                <h4>
+                    Wards & Beds Configuration
+                </h4>
+
+                <form onsubmit="addWard(event)">
+
+                    <div class="form-group">
+
+                        <input
+                            type="text"
+                            id="cfg-ward-name"
+                            placeholder="Ward Name (e.g. Ward A)"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <input
+                            type="number"
+                            id="cfg-ward-capacity"
+                            placeholder="Bed Capacity"
+                            min="1"
+                            required
+                        >
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Add Ward
+                    </button>
+
+                </form>
+
+                <ul
+                    id="cfg-ward-list"
+                    class="hms-extracted-style-13"
+                ></ul>
+
+            </div>
+
+            <!-- =================================================
+                 SERVICE CATALOG
+            ================================================== -->
+
+            <div>
+
+                <h4>
+                    Service Catalog & Tariffs
+                </h4>
+
+                <form onsubmit="addService(event)">
+
+                    <div class="form-group">
+                        <label for="cfg-service-category">Tariff category</label>
+                        <select id="cfg-service-category" required onchange="updateServiceTariffFields()">
+                            <option value="">Select tariff category</option>
+                            <option value="registration">Per patient registration</option>
+                            <option value="triage">Per triage assessment</option>
+                            <option value="consultation">Per doctor consultation</option>
+                            <option value="lab">Per lab test</option>
+                            <option value="imaging">Per radio imaging</option>
+                            <option value="surgery">Per surgery</option>
+                            <option value="nursing_day">Per nursing day from admission</option>
+                            <option value="guidance">Per guidance counseling session</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="cfg-service-detail-group" style="display:none;">
+                        <label id="cfg-service-detail-label" for="cfg-service-detail">Service type</label>
+                        <input type="text" id="cfg-service-detail" placeholder="Enter service type">
+                        <small id="cfg-service-detail-help">Each type can have its own fee.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cfg-service-fee">Fee</label>
+                        <input
+                            type="number"
+                            id="cfg-service-fee"
+                            step="0.01"
+                            min="0"
+                            placeholder="Enter fee"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm">Add Tariff</button>
+                </form>
+
+                <ul
+                    id="cfg-service-list"
+                    class="hms-extracted-style-14"
+                ></ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+        <!-- STAFF -->
+        <div id="admin-staff" class="tab-content">
+
+          <div class="card">
+
+            <div class="card-header">
+              Staff Registry Management
+            </div>
+
+            <div class="grid-2">
+
+              <!-- REGISTER STAFF -->
+              <div>
+
+                <h4>Register New Staff Member</h4>
+
+                <form onsubmit="registerStaff(event)">
+
+                <!-- NAME -->
+              <div class="form-group">
+
+                <label>Full Name</label>
+
+                <input
+                  type="text"
+                  id="st-name"
+                  required
+                  placeholder="Full name"
+                >
+
+              </div>
+
+              <!-- ROLE -->
+              <div class="form-group">
+
+                <label>Role / Position</label>
+
+                <select
+                  id="st-role"
+                  required
+                  onchange="handleStaffRoleChange()"
+                >
+
+                  <option value="">
+                    Select Role
+                  </option>
+
+                  <option value="doctor">
+                    Doctor
+                  </option>
+
+                  <option value="nurse">
+                    Nurse
+                  </option>
+
+                  <option value="radiologist">
+                    Radiologist
+                  </option>
+
+                  <option value="labtech">
+                    Laboratory Technician
+                  </option>
+
+                  <option value="pharmacist">
+                    Pharmacist
+                  </option>
+
+                  <option value="surgeon">
+                    Surgeon
+                  </option>
+
+                  <option value="opd">
+                    OPD
+                  </option>
+
+                  <option value="receptionist">
+                    Receptionist
+                  </option>
+
+                  <option value="accountant">
+                    Finance Officer
+                  </option>
+                  <option value="procurement_officer">Procurement Officer</option>
+                  <option value="secretary">Secretary</option>
+                  <option value="guidance_counselor">Counselor</option>
+                </select>
+
+              </div>
+
+              <div class="form-group">
+                <label>
+                Login Username
+                </label>
+
+                <input
+                type="text"
+                id="st-username"
+                autocomplete="username"
+                required
+                placeholder="Username used for HMS login"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>
+                Login Password
+                </label>
+
+                <input
+                type="password"
+                id="st-password"
+                autocomplete="new-password"
+                required
+                placeholder="Password used for HMS login"
+                >
+              </div>
+              <!-- PHONE -->
+              <div class="form-group">
+
+                <label>Phone Number</label>
+
+                <input
+                  type="tel"
+                  id="st-phone"
+                  placeholder="Phone number"
+                >
+
+              </div>
+
+              <!-- EMAIL -->
+              <div class="form-group">
+                <label>Email</label>
+
+                <input
+                  type="email"
+                  id="st-email"
+                  placeholder="Email address"
+                >
+
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+              >
+              Register Staff
+              </button>
+
+            </form>
+
+          </div>
+
+          <!-- STAFF REGISTRY -->
+          <div>
+
+            <h4>Active Staff Registry</h4>
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>ID</th>
+                  <th>Staff Name</th>
+                  <th>Role</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Shift Status</th>
+                  <th>Actions</th>
+                </tr>
+
+              </thead>
+
+                  <tbody id="admin-staff-table">
+
+                    <tr>
+                      <td
+                      colspan="7"
+                        class="hms-extracted-style-15"
+                      >
+                    
+                      Loading staff...
+                      </td>
+                    </tr>
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- =====================================================
+        INVENTORY MODULE
+        ====================================================== -->
+        
+
+        <!-- REPORTS -->
+        
+
+        <!-- SECURITY -->
+        <div id="admin-sec" class="tab-content">
+          <div class="card">
+            <div class="card-header">Security, Audit Logs & Database Backup</div>
+            <div class="grid-2">
+              <div>
+                <h4>System Audit Log</h4>
+                <div id="audit-log-console" class="hms-extracted-style-16"></div>
+              </div>
+              <!-- =====================================================
+              SYSTEM AUDIT LOG EXPORT BUTTON
+              ====================================================== -->
+              <div class="database-maintenance">
+
+              <h3>Database Maintenance</h3>
+
+              <!-- SYSTEM AUDIT LOG EXPORT -->
+<button
+    type="button"
+    id="export-audit-logs-btn"
+    class="btn btn-danger">
+
+    Export System Audit Log
+
+</button>
+
+
+
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           2. RECEPTION MODULE
+      ====================================================== -->
+      <div id="mod-reception" class="module-view">
+        <div class="hms-tab-group">
+          <div class="sub-tabs" aria-label="Reception workflow">
+            <button type="button" class="tab-btn active" onclick="switchHmsNestedTab(this,'reception-patient-identity')">Patients Identity</button>
+            <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'reception-triage-assessment')">Triage Assessment (Vitals)</button>
+          </div>
+
+          <div id="reception-patient-identity" class="tab-content active">
+        <div class="card">
+          <div class="card-header">Patient Registration & Visit Creation</div>
+          <form onsubmit="registerPatient(event)">
+            <div class="grid-4">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="reg-name" required placeholder="John Doe">
+              </div>
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="reg-dob" required>
+              </div>
+              <div class="form-group">
+                <label>Gender</label>
+                <select id="reg-gender">
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Phone Number <span class="text-muted">(optional)</span></label>
+                <input type="text" id="reg-phone" placeholder="+123456789">
+              </div>
+              <div class="form-group">
+                <label>National ID <span class="text-muted">(optional)</span></label>
+                <input type="text" id="reg-national-id" maxlength="50" placeholder="Enter if available">
+              </div>
+              <button
+                type="submit"
+                class="btn btn-success"
+              >
+              Register Patient & Send to Triage
+              </button>
+            </div>
+            
+          </form>
+        </div>
+
+        <div id="patient-match-dialog" class="patient-match-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="patient-match-dialog-title">
+          <div class="patient-match-dialog-card">
+            <h3 id="patient-match-dialog-title">Possible existing patient records</h3>
+            <p>Confirm the patient's identity, then select an existing record to create a new visit. If none belong to this patient, continue with a new registration.</p>
+            <div id="patient-match-options" class="patient-match-options" aria-live="polite"></div>
+            <div class="patient-match-dialog-actions">
+              <button type="button" class="btn" data-patient-match-cancel>Cancel</button>
+              <button type="button" class="btn btn-success" data-patient-match-new>Register as New Patient</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card print-area hms-extracted-style-17" id="pt-card-print" >
+          <h3>HOSPITAL PATIENT IDENTIFICATION CARD</h3>
+          <p>--------------------------------------------------</p>
+          <p><strong>Patient ID:</strong> <span id="card-id"></span></p>
+          <p><strong>Name:</strong> <span id="card-name"></span></p>
+          <p><strong>DOB/Gender:</strong> <span id="card-dob"></span> | <span id="card-gender"></span></p>
+          <p><strong>Phone:</strong> <span id="card-phone"></span></p>
+          <p>--------------------------------------------------</p>
+          <div class="patient-card-print-actions">
+            <button type="button" class="btn btn-primary" onclick="printPatientCard()">🖨️ Print Patient Card Only</button>
+          </div>
+        </div>
+          </div>
+
+          <div id="reception-triage-assessment" class="tab-content">
+        <div class="card">
+          <div class="card-header">Triage - Vital Signs & Nursing Assessment</div>
+          <form onsubmit="saveTriage(event)">
+            <div class="form-group">
+              <label>Select Patient from Waiting Queue</label>
+              <select id="triage-patient-select"></select>
+            </div>
+
+            <h4 class="hms-extracted-style-18">1. Vital Signs Recording</h4>
+            <div class="grid-4">
+              <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" step="0.1" id="v-weight" oninput="calcBMI()" placeholder="70">
+              </div>
+              <div class="form-group">
+                <label>Height (cm)</label>
+                <input type="number" id="v-height" oninput="calcBMI()" placeholder="175">
+              </div>
+              <div class="form-group">
+                <label>Calculated BMI</label>
+                <input type="text" id="v-bmi" readonly placeholder="Auto">
+              </div>
+              <div class="form-group">
+                <label>Blood Pressure (mmHg)</label>
+                <input type="text" id="v-bp" placeholder="120/80">
+              </div>
+              <div class="form-group">
+                <label>Temperature (°C)</label>
+                <input type="number" step="0.1" id="v-temp" placeholder="37.0">
+              </div>
+              <div class="form-group">
+                <label>Pulse Rate (bpm)</label>
+                <input type="number" id="v-pulse" placeholder="72">
+              </div>
+              <div class="form-group">
+                <label>Respiratory Rate (/min)</label>
+                <input type="number" id="v-rr" placeholder="18">
+              </div>
+              <div class="form-group">
+                <label>Oxygen Saturation SpO2 (%)</label>
+                <input type="number" id="v-spo2" placeholder="98">
+              </div>
+              <div class="form-group">
+                <label>Blood Sugar (mg/dL)</label>
+                <input type="number" id="v-bs" placeholder="100">
+              </div>
+              <div class="form-group">
+                <label>Pain Score (1-10)</label>
+                <input type="number" id="v-pain" min="1" max="10" placeholder="2">
+              </div>
+            </div>
+
+            <h4 class="hms-extracted-style-19">2. Nursing Risk Assessment</h4>
+            <div class="grid-3">
+              <div class="form-group">
+                <label>Chief Complaint</label>
+                <input type="text" id="v-complaint" required placeholder="Chief complaint description">
+              </div>
+              <div class="form-group">
+                <label>Assigned Clinical Department / Clinic</label>
+
+                <select
+                  id="v-assigned-clinic"
+                  required
+                >
+                </select>
+              </div>
+                  
+              <div class="form-group">
+                <label>Known Allergies</label>
+                <input type="text" id="v-allergies" placeholder="Penicillin, Peanuts, None">
+              </div>
+              <div class="form-group">
+                <label>Pregnancy Status</label>
+                <select id="v-preg">
+                  <option>N/A</option>
+                  <option>Not Pregnant</option>
+                  <option>Pregnant</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Glasgow Coma Scale (GCS /15)</label>
+                <input type="number" id="v-gcs" value="15" max="15">
+              </div>
+              <div class="form-group">
+                <label>Fall Risk Assessment</label>
+                <select id="v-fall">
+                  <option>Low Risk</option>
+                  <option>Moderate Risk</option>
+                  <option>High Risk</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Priority Rating</label>
+                <select id="v-priority">
+                  <option value="P3 (Low)">P3 - Low / Routine</option>
+                  <option value="P2 (Medium)">P2 - Urgent</option>
+                  <option value="P1 (Emergency)">P1 - Emergency / Critical Alert</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary">Save Triage & Route to Doctor</button>
+          </form>
+        </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="mod-doctor" class="module-view">
+        <div class="doc-nursing-rounds-launcher">
+          <button type="button" id="doc-nursing-rounds-toggle" class="btn btn-primary" aria-expanded="false" aria-controls="doc-nursing-rounds" onclick="if(typeof window.toggleDoctorRounds==='function'){window.toggleDoctorRounds();}else{var rounds=document.getElementById('doc-nursing-rounds');if(rounds){rounds.hidden=false;rounds.style.display='block';this.hidden=true;this.setAttribute('aria-expanded','true');rounds.scrollIntoView({behavior:'smooth',block:'start'});}}">Doctor’s Rounds</button>
+        </div>
+
+                <section id="doc-nursing-rounds" class="card doc-nursing-rounds-card" hidden>
+          <div class="doc-nursing-rounds-header">
+            <div><div class="card-header">Doctor’s Rounds</div><p class="hms-muted">Review under-care patients, saved nursing sessions and nurse follow-up reports. Add a doctor’s rounds comment to the patient record.</p></div>
+            <div class="doc-nursing-rounds-actions"><span class="doc-nursing-rounds-badge">Doctor workspace</span><button type="button" class="btn btn-secondary" id="doc-nursing-rounds-back" onclick="if(typeof window.closeDoctorRounds==='function'){window.closeDoctorRounds();}else{var rounds=document.getElementById('doc-nursing-rounds');if(rounds){rounds.hidden=true;rounds.style.display='';}var opener=document.getElementById('doc-nursing-rounds-toggle');if(opener){opener.hidden=false;opener.setAttribute('aria-expanded','false');}}">Back to Doctor Main Page</button></div>
+          </div>
+          <div class="doc-nursing-rounds-controls">
+            <label for="doc-nursing-round-patient">Search or select an under-care patient</label>
+            <input id="doc-nursing-round-patient" type="search" list="doc-nursing-round-patients" placeholder="Type a patient name or ID…" autocomplete="off">
+            <datalist id="doc-nursing-round-patients"></datalist>
+            <button type="button" class="btn btn-secondary" id="doc-nursing-round-refresh">Refresh patients</button>
+          </div>
+          <div class="sub-tabs doc-round-subtabs" role="tablist" aria-label="Nursing rounds records">
+            <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-doc-round-tab="reports">Follow-up Reports</button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-doc-round-tab="sessions">Nursing Sessions</button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-doc-round-tab="comments">Rounds Comments</button>
+          </div>
+          <section id="doc-round-panel-reports" class="doc-round-panel" role="tabpanel"><p class="hms-muted">Select an under-care patient to view nurse follow-up reports.</p></section>
+          <section id="doc-round-panel-sessions" class="doc-round-panel" role="tabpanel" hidden><p class="hms-muted">Select an under-care patient to view nursing sessions.</p></section>
+          <section id="doc-round-panel-comments" class="doc-round-panel" role="tabpanel" hidden>
+            <div id="doc-round-comments-list"><p class="hms-muted">Select an under-care patient to view rounds comments.</p></div>
+            <form id="doc-nursing-round-form" class="doc-nursing-round-form">
+              <label for="doc-nursing-round-note">Doctor’s daily rounds comment</label>
+              <textarea id="doc-nursing-round-note" rows="3" required placeholder="Record assessment, instructions or follow-up from today’s round…"></textarea>
+              <button type="submit" class="btn btn-primary">Save rounds comment</button>
+            </form>
+          </section>
+        </section>
+        <div id="doc-consultation-workspace" class="card">
+          <div class="card-header">Doctor Consultation & Clinical Examination</div>
+          <form onsubmit="saveDoctorConsultation(event)">
+            <div class="form-group">
+              <label>Select Active Patient</label>
+              <select id="doc-patient-select" onchange="handleDoctorPatientChange(); toggleDoctorRecordTabs(this.value)"></select>
+            </div>
+
+            <div id="doc-patient-record-tabs" class="hms-tab-group hms-extracted-style-20" >
+              <div class="sub-tabs" aria-label="Selected patient records">
+                <button type="button" class="tab-btn active" onclick="switchHmsNestedTab(this,'doc-record-triage')">Triage Records</button>
+                <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'doc-record-lab')">Lab Records</button>
+                <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'doc-record-radiology')">Radiology Records</button>
+                <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'doc-record-progress')">Clinical Progress</button>
+              </div>
+
+              <div id="doc-record-triage" class="tab-content active">
+                <div id="doc-vitals-summary" class="hms-extracted-style-21">
+                  <em>Select a patient to view vitals and triage assessment.</em>
+                </div>
+              </div>
+
+              <div id="doc-record-lab" class="tab-content">
+                <div id="doc-laboratory-results" class="hms-extracted-style-22">
+                  <strong>Laboratory Results</strong>
+                  <div id="doc-laboratory-content" class="hms-extracted-style-23">
+                    <em>Select a patient to view laboratory requests and results.</em>
+                  </div>
+                </div>
+              </div>
+
+              <div id="doc-record-radiology" class="tab-content">
+                <div id="doc-radiology-results" class="hms-extracted-style-24">
+                  <strong>Radiology Results &amp; Imaging</strong>
+                  <div id="doc-radiology-content" class="hms-extracted-style-25">
+                    <em>Select a patient to view available radiology reports and scans.</em>
+                  </div>
+                </div>
+              </div>
+
+              <div id="doc-record-progress" class="tab-content">
+                <div id="doc-clinical-progress-content" class="hms-extracted-style-26">
+                  <strong>Clinical Progress</strong>
+                  <div class="hms-extracted-style-27">Select a patient to view the clinical progress and consultation history.</div>
+                </div>
+              </div>
+
+              <div id="doc-record-nursing" class="tab-content">
+<div
+    id="doctor-followup-reports"
+    class="hms-extracted-style-28"
+  >
+
+    <div
+      class="hms-extracted-style-29"
+    >
+      Nursing Follow-up Reports
+    </div>
+
+    <div
+      class="hms-extracted-style-30"
+    >
+      No nursing follow-up reports are waiting for acknowledgement.
+    </div>
+     
+  </div>
+              </div>
+            </div>
+
+            <div class="hms-tab-group">
+            <div class="sub-tabs">
+              <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'doc-patient-files')">Patient Files</button>
+              <button type="button" class="tab-btn active" onclick="switchHmsNestedTab(this,'doc-history')">History & Exam</button>
+              <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'doc-diag')">Diagnosis</button>
+              <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'doc-orders')">Orders & Rx</button>
+              <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'doc-followup')">Follow-up & Referral</button>
+            </div>
+
+            <section id="doc-patient-files" class="tab-content" role="tabpanel">
+      <div class="card hms-admin-window">
+        <div class="card-header">Patient Files & Journey</div>
+        <label for="doc-patient-file-search">Find patient by ID, name, patient number or phone</label><input id="doc-patient-file-search" type="text" autocomplete="off" placeholder="Start typing a patient ID or name…">
+        <div id="doc-patient-file-matches" class="hms-patient-match-list" aria-live="polite"></div>
+        <div id="doc-patient-journey-title" class="hms-patient-journey-title">Select a patient to view their journey.</div>
+        <div class="hms-journey-print-actions no-print"><button type="button" class="btn btn-secondary" onclick="printPatientJourney('doctor')">Print Patient File</button></div>
+        <div class="hms-journey-period-filters no-print" data-journey-filter="doctor">
+          <label>Period <select id="doc-journey-period"><option value="all">All records</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="3m">Last 3 months</option><option value="6m">Last 6 months</option><option value="1y">Last year</option><option value="custom">Custom dates</option></select></label>
+          <label>From <input type="date" id="doc-journey-from"></label><label>To <input type="date" id="doc-journey-to"></label>
+          <button type="button" class="btn btn-secondary" id="doc-journey-apply">Apply period</button>
+        </div>
+        <div id="doc-patient-journey" class="hms-patient-document-store" aria-live="polite"><p class="hms-muted">No patient selected.</p></div>
+      </div>
+    </section>
+
+            <div id="doc-history" class="tab-content active">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>History of Present Illness (HPI)</label>
+                  <textarea id="d-hpi" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Past Medical & Surgical History</label>
+                  <textarea id="d-past-hx" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Systemic Examination (Cardio, Resp, GI, Neuro, ENT, Ophth)</label>
+                  <textarea id="d-exam" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Drug & Social/Family History</label>
+                  <textarea id="d-social" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div id="doc-diag" class="tab-content">
+              <div class="grid-3">
+                <div class="form-group">
+                  <label>Provisional Diagnosis</label>
+                  <input type="text" id="d-prov-diag" placeholder="Enter provisional diagnosis">
+                </div>
+                <div class="form-group">
+                  <label>Differential Diagnosis</label>
+                  <input type="text" id="d-diff-diag" placeholder="Enter differential diagnosis">
+                </div>
+                <div class="form-group">
+                  <label>Final Diagnosis (ICD-10 Code)</label>
+                  <input type="text" id="d-final-diag" placeholder="Code / Name">
+                </div>
+              </div>
+            </div>
+
+            <div id="doc-orders" class="tab-content">
+              <div class="grid-2">
+                <div>
+                  <h4>Investigation Requests</h4>
+                  <div class="form-group">
+                    <label>Laboratory Test Request</label>
+                    <input type="text" id="d-lab-order" placeholder="Enter required lab test (e.g. Full Blood Count)">
+                  </div>
+                  <div class="form-group">
+                    <label>Radiology Request</label>
+                    <input type="text" id="d-rad-order" placeholder="Enter required radiology scan (e.g. Chest X-Ray)">
+                  </div>
+                </div>
+                  <div>
+                    <h4>Medication Prescription</h4>
+                    <div id="doctor-medication-list">
+                      <div class="doctor-medication-item">
+                        <div class="form-group">
+                          <label>Medication</label>
+                          <input
+                          type="text"
+                          class="d-rx-drug-search"
+                          placeholder="Search medication..."
+                          autocomplete="off"
+                          >
+                          <input
+                          type="hidden"
+                          class="d-rx-drug"
+                          value=""
+                          >
+                        <div
+                        class="d-rx-drug-results hms-extracted-style-31"
+                        
+                        >
+                        </div>
+                      </div>
+                        <div class="grid-2">
+                          <div class="form-group">
+                            <label>Route & Frequency</label>
+                            <input
+                            type="text"
+                            class="d-rx-freq"
+                            placeholder="e.g. Oral / TDS"
+                            >
+                          </div>
+                          <div class="form-group">
+                            <label>Duration & Instructions</label>
+                            <input
+                            type="text"
+                            class="d-rx-dur"
+                            placeholder="e.g. 5 Days after food"
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                    type="button"
+                    onclick="addDoctorMedication()"
+                    class="hms-extracted-style-32"
+                    >
+                    + Add Another Medication
+                    </button>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+
+        <div id="doc-followup" class="tab-content">
+
+  <div class="grid-2">
+
+    <div class="form-group">
+
+      <label>
+        Follow-up Date / Review
+      </label>
+
+      <input
+        type="date"
+        id="d-followup-date"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label>
+        Referral Destination
+      </label>
+
+      <select id="d-referral-destination">
+
+        <option value="" selected>
+          No Referral
+        </option>
+
+        <option value="nurse">
+          Refer to Nursing Ward
+        </option>
+
+        <option value="theatre">
+          Refer to Operating Theatre
+        </option>
+        <option value="guidance">
+          Refer to Guidance &amp; Counseling
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <div class="form-group">
+
+    <label>
+      Referral / Medical Certificate Notes
+    </label>
+
+    <textarea
+      id="d-referral"
+      rows="3"
+      placeholder="Enter detailed clinical instructions or referral details..."
+    ></textarea>
+
+  </div>
+  </div>
+            </div>
+
+  <!-- =====================================================
+       SAVE DOCTOR CONSULTATION
+  ====================================================== -->
+
+  <div class="hms-office-actions doctor-consultation-actions">
+    <button type="submit" class="btn btn-primary">Save Doctor Consultation</button>
+  </div>
+
+</form>
+
+</div>
+
+      <!-- =====================================================
+           5. EMERGENCY / CASUALTY MODULE
+      ====================================================== -->
+      <div id="mod-emergency" class="module-view">
+        <div class="card">
+          <div class="card-header">Emergency / Casualty Department</div>
+          <form onsubmit="saveEmergencyCase(event)">
+            <div class="grid-3">
+              <div class="form-group">
+                <label>Select / Identify Patient</label>
+                <select id="emergency-patient-select">
+                  <option value="">-- Select Registered Patient --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Arrival Mode</label>
+                <select id="em-arrival-mode">
+                  <option>Walk-in</option>
+                  <option>Ambulance</option>
+                  <option>Police / Emergency Service</option>
+                  <option>Referral</option>
+                  <option>Transfer from Ward</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Arrival Date / Time</label>
+                <input type="datetime-local" id="em-arrival-time">
+              </div>
+              <div class="form-group">
+                <label>Emergency Priority</label>
+                <select id="em-priority">
+                  <option value="RED">RED - Immediate / Resuscitation</option>
+                  <option value="ORANGE">ORANGE - Very Urgent</option>
+                  <option value="YELLOW">YELLOW - Urgent</option>
+                  <option value="GREEN">GREEN - Non-Urgent</option>
+                  <option value="BLUE">BLUE - Deceased / Expectant</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Emergency Area</label>
+                <select id="em-area">
+                  <option>Resuscitation Room</option>
+                  <option>Emergency Bed</option>
+                  <option>Observation Area</option>
+                  <option>Minor Treatment Area</option>
+                  <option>Isolation Area</option>
+                </select>
+              </div>
+            </div>
+
+            <h4 class="hms-extracted-style-34">Emergency Assessment</h4>
+            <div class="grid-4">
+              <div class="form-group">
+                <label>Airway</label>
+                <select id="em-airway">
+                  <option>Patent</option>
+                  <option>Compromised</option>
+                  <option>Obstructed</option>
+                  <option>Intubated</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Breathing</label>
+                <select id="em-breathing">
+                  <option>Normal</option>
+                  <option>Distressed</option>
+                  <option>Severe Distress</option>
+                  <option>Apnoea</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Circulation</label>
+                <select id="em-circulation">
+                  <option>Stable</option>
+                  <option>Unstable</option>
+                  <option>Shock</option>
+                  <option>Cardiac Arrest</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Consciousness</label>
+                <select id="em-consciousness">
+                  <option>Alert</option>
+                  <option>Confused</option>
+                  <option>Drowsy</option>
+                  <option>Unresponsive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-4">
+              <div class="form-group">
+                <label>Emergency BP</label>
+                <input type="text" id="em-bp" placeholder="120/80">
+              </div>
+              <div class="form-group">
+                <label>Pulse (bpm)</label>
+                <input type="number" id="em-pulse" placeholder="72">
+              </div>
+              <div class="form-group">
+                <label>SpO2 (%)</label>
+                <input type="number" id="em-spo2" placeholder="98">
+              </div>
+              <div class="form-group">
+                <label>GCS (/15)</label>
+                <input type="number" id="em-gcs" min="3" max="15" value="15">
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Chief Emergency Complaint</label>
+                <textarea id="em-complaint" rows="3" required placeholder="Describe the presenting emergency..."></textarea>
+              </div>
+              <div class="form-group">
+                <label>Relevant Medical History / Allergies</label>
+                <textarea id="em-history" rows="3" placeholder="Known conditions, medication, allergies..."></textarea>
+              </div>
+            </div>
+
+            <h4 class="hms-extracted-style-35">Emergency Treatment</h4>
+            <div class="grid-3">
+              <div class="form-group">
+                <label>Emergency Intervention</label>
+                <input type="text" id="em-intervention" placeholder="e.g. CPR, oxygen, IV access">
+              </div>
+              <div class="form-group">
+                <label>Medication / Emergency Drug</label>
+                <input type="text" id="em-medication" placeholder="Drug and dose">
+              </div>
+              <div class="form-group">
+                <label>Emergency Doctor</label>
+                <select id="em-doctor-select"></select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Emergency Clinical Notes</label>
+                <textarea id="em-notes" rows="3" placeholder="Clinical findings, treatment and response..."></textarea>
+              </div>
+              <div class="form-group">
+                <label>Final Emergency Disposition</label>
+                <select id="em-disposition">
+                  <option>Discharge Home</option>
+                  <option>Admit to Ward</option>
+                  <option>Admit to ICU</option>
+                  <option>Transfer to Operating Theatre</option>
+                  <option>Transfer to Another Hospital</option>
+                  <option>Observation</option>
+                  <option>Death in Emergency Department</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-danger">Save Emergency Case & Update Patient Workflow</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Active Emergency / Casualty Cases</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Case ID</th>
+                <th>Patient</th>
+                <th>Arrival</th>
+                <th>Priority</th>
+                <th>Area</th>
+                <th>Condition</th>
+                <th>Doctor</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="emergency-cases-table"></tbody>
+          </table>
+        </div>
+
+        <div class="grid-4">
+          <div class="card">
+            <small>Active Emergencies</small>
+            <div id="em-active-count" class="hms-extracted-style-36">0</div>
+          </div>
+          <div class="card">
+            <small>Critical / RED</small>
+            <div id="em-critical-count" class="hms-extracted-style-37">0</div>
+          </div>
+          <div class="card">
+            <small>Awaiting Doctor</small>
+            <div id="em-awaiting-doctor" class="hms-extracted-style-38">0</div>
+          </div>
+          <div class="card">
+            <small>Admitted Today</small>
+            <div id="em-admitted-today" class="hms-extracted-style-39">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+      6. NURSES & INPATIENT WARD MODULE
+      ====================================================== -->
+      <div id="mod-nurse" class="module-view">
+
+  <div class="hms-tab-group">
+  <div class="sub-tabs" aria-label="Inpatient nursing subtabs">
+    <button type="button" class="tab-btn active" onclick="switchHmsNestedTab(this,'nurse-new-patients')">New Patients</button>
+    <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'nurse-undercare-patients')">Undercare Patients</button>
+  </div>
+
+  <div id="nurse-new-patients" class="tab-content active">
+  <div class="card">
+
+    <div class="card-header">
+      Nurses Module & Inpatient Ward Care
+    </div>
+
+    <div id="nurse-red-flag-alert"></div>
+
+    <form onsubmit="saveNurseCare(event)">
+
+      <!-- ===============================================
+           PATIENT
+      ================================================ -->
+
+      <input
+        type="hidden"
+        id="nurse-patient-db-id"
+        value=""
+      >
+
+      <div class="form-group">
+
+        <label>
+          Select Patient
+        </label>
+
+        <select
+          id="nurse-patient-select"
+          onchange="loadNurseClinicalInformation()"
+        >
+
+          <option value="">
+            -- Select Referred Patient --
+          </option>
+
+        </select>
+
+      </div>
+
+      <!-- ===============================================
+           DOCTOR'S REFERRAL / CLINICAL INFORMATION
+      ================================================ -->
+
+      <div
+        id="nurse-doctor-information"
+        class="hms-clinical-note-panel"
+      >
+
+        <strong>
+          Doctor's Referral / Clinical Notes:
+        </strong>
+
+        <span>
+          Select a patient to view doctor's notes.
+        </span>
+
+      </div>
+
+      <!-- ===============================================
+           NURSING ASSESSMENT + CARE PLAN
+      ================================================ -->
+
+      <div class="grid-2">
+
+        <div class="form-group">
+
+          <label>
+            Nursing Assessment
+          </label>
+
+          <textarea
+            id="n-assessment"
+            rows="3"
+            placeholder="Record the patient's current nursing assessment"
+          ></textarea>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Nursing Care Plan
+          </label>
+
+          <textarea
+            id="n-care-plan"
+            rows="3"
+            placeholder="Record planned nursing care"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+      <!-- ===============================================
+           BED + INTERVENTION + MEDICATION
+      ================================================ -->
+
+      <div class="grid-3">
+
+        <div class="form-group">
+
+          <label>
+            Ward / Bed Allocation
+          </label>
+
+          <select id="n-bed">
+
+            <option value="">
+              -- Select Available Bed --
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Procedure / Intervention Administered
+          </label>
+
+          <input
+            type="text"
+            id="n-proc"
+            placeholder="Procedure or nursing intervention"
+          >
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Medication Administered
+          </label>
+
+          <input
+            type="text"
+            id="n-med-admin"
+            placeholder="Medication and dose administered"
+          >
+
+        </div>
+
+      </div>
+
+      <!-- ===============================================
+           MONITORING + PATIENT RESPONSE
+      ================================================ -->
+
+      <div class="grid-2">
+
+        <div class="form-group">
+
+          <label>
+            Vital Signs / Monitoring
+          </label>
+
+          <textarea
+            id="n-monitoring"
+            rows="3"
+            placeholder="BP, pulse, temperature, SpO2, blood glucose, fluid balance, pain score, etc."
+          ></textarea>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Patient Response
+          </label>
+
+          <textarea
+            id="n-response"
+            rows="3"
+            placeholder="Record the patient's response to treatment/care"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+      <!-- ===============================================
+           SHIFT + NURSING NOTES
+      ================================================ -->
+
+      <div class="grid-2">
+
+        <div class="form-group">
+
+          <label>
+            Shift
+          </label>
+
+          <select id="n-shift">
+
+            <option value="">
+              Select Shift
+            </option>
+
+            <option value="Morning">
+              Morning
+            </option>
+
+            <option value="Afternoon">
+              Afternoon
+            </option>
+
+            <option value="Night">
+              Night
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Shift Nursing Notes & Progress Report
+          </label>
+
+          <textarea
+            id="n-notes"
+            rows="3"
+            placeholder="Record shift progress and other nursing notes"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+      <!-- ===============================================
+           SAVE
+      ================================================ -->
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        Save Nursing Care
+      </button>
+
+    </form>
+
+  </div>
+  </div>
+
+  <div id="nurse-undercare-patients" class="tab-content">
+  <div class="card">
+
+    <div class="card-header">
+      Inpatient Ward Care
+    </div>
+
+    <label for="nurse-inpatient-search" class="hms-nurse-search-label">Find inpatient by patient name or ID</label>
+    <input id="nurse-inpatient-search" type="search" autocomplete="off" placeholder="Search patient name or patient ID…" class="hms-nurse-search">
+    <div id="nurse-inpatient-list">
+
+      <div>
+        Loading inpatient patients...
+      </div>
+
+    </div>
+
+  </div>
+  </div>
+
+</div>
+
+      <!-- Close the Inpatient Nurse module before starting Laboratory. -->
+      </div>
+
+      <!-- =====================================================
+           7. LABORATORY MODULE
+      ====================================================== -->
+      <div id="mod-lab" class="module-view">
+        <div class="card">
+          <div class="card-header">Laboratory Investigation & Processing</div>
+          <section class="lab-patient-release" aria-labelledby="lab-patient-release-heading">
+            <div><strong id="lab-patient-release-heading">Release Patient</strong><p class="hms-muted">Patients stay in the Lab queue while tests are pending. Release them to Doctor when all requested tests are complete.</p></div>
+            <div class="lab-patient-release-controls">
+              <label for="lab-release-patient-select">Patient ready to leave Lab</label>
+              <select id="lab-release-patient-select"><option value="">Loading Lab patients…</option></select>
+              <button type="button" class="btn btn-primary" id="lab-release-patient-btn" disabled>Release Patient to Doctor</button>
+            </div>
+            <p id="lab-release-patient-status" class="hms-muted" aria-live="polite"></p>
+          </section>
+          <form onsubmit="saveLabResult(event)">
+            <div class="form-group">
+              <label>Select Pending Lab Request</label>
+              <select id="lab-patient-select" onchange="loadLabOrders()"></select>
+            </div>
+
+            <div id="lab-doctor-orders" class="hms-order-panel">
+              <strong>Doctor's Laboratory Order:</strong>
+              <span>Select a patient to view the order.</span>
+            </div>
+
+            <div class="grid-3">
+              <div class="form-group">
+                <label>Sample Barcode / Reg ID</label>
+                <input type="text" id="lab-barcode" placeholder="e.g. SMP-1001">
+              </div>
+              <div class="form-group">
+                <label>Sample Type</label>
+                <select id="lab-sample">
+                  <option>Venous Blood</option>
+                  <option>Urine</option>
+                  <option>Swab / Sputum</option>
+                  <option>Tissue</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Verification Status</label>
+                <select id="lab-status">
+                  <option>Scientist Verified & Approved</option>
+                  <option>Pending Review</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Detailed Lab Test Metrics & Range Findings</label>
+              <textarea id="lab-results" rows="3" placeholder="Enter quantitative and qualitative lab results..."></textarea>
+            </div>
+
+            <button class="btn btn-success">Save & Upload Results to Doctor</button>
+          </form>
+        </div>
+      </div>
+
+  <!-- =====================================================
+  8. PHARMACY MODULE
+  ====================================================== -->
+  <div id="mod-pharmacy" class="module-view">
+
+  <div class="hms-tab-group">
+  <div class="sub-tabs" aria-label="Pharmacy subtabs">
+    <button type="button" class="tab-btn active" onclick="switchHmsNestedTab(this,'pharm-patient-dispensing')">Patient Dispensing</button>
+    <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'pharm-department-dispensing')">Department Dispensing</button>
+    <button type="button" class="tab-btn" onclick="switchHmsNestedTab(this,'admin-inv')">Inventory</button>
+  </div>
+
+  <div id="pharm-patient-dispensing" class="tab-content active">
+  <div class="card">
+
+    <div class="card-header">
+      Pharmacy - Prescription Dispensing
+    </div>
+
+    <form onsubmit="dispenseMeds(event)">
+
+      <input
+        type="hidden"
+        id="pharm-prescription-id"
+      >
+
+      <div class="form-group">
+
+        <label>
+          Select Patient with Prescription
+        </label>
+
+        <select
+          id="pharm-patient-select"
+          onchange="loadPharmRx()"
+        >
+
+          <option value="">
+            Select Patient
+          </option>
+
+        </select>
+
+      </div>
+
+      <div
+        id="pharm-rx-details"
+        class="hms-extracted-style-40"
+      >
+        <em>
+          Select a patient to load ordered prescriptions.
+        </em>
+      </div>
+
+      <div class="grid-3">
+         <div class="form-group">
+
+  <label>
+    Search Dispensing Item
+  </label>
+
+  <input
+    type="text"
+    id="p-item-search"
+    placeholder="Search medication or inventory item..."
+    autocomplete="off"
+  >
+
+  <input
+    type="hidden"
+    id="p-item-select"
+    value=""
+  >
+
+  <div
+    id="p-item-results"
+    class="hms-extracted-style-41"
+  ></div>
+
+</div>
+        
+
+        <div class="form-group">
+
+          <label>
+            Dispensing Unit
+          </label>
+
+          <select id="p-unit-select">
+
+            <option value="">
+              Select Unit
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Quantity Dispensed
+          </label>
+
+          <input
+            type="number"
+            id="p-qty"
+            min="1"
+            value="1"
+          >
+
+        </div>
+
+      </div>
+
+      <p id="pharm-dispense-cost-preview" class="hms-muted" role="status" aria-live="polite">Select a medicine to preview its saved stocking cost.</p>
+
+      <div class="form-group">
+
+        <label>
+          Expiry Date Check
+        </label>
+
+        <input
+          type="date"
+          id="p-exp"
+        >
+
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        Verify & Dispense Medication
+      </button>
+
+    </form>
+
+  </div>
+  </div>
+
+  <div id="pharm-department-dispensing" class="tab-content">
+  <div class="card">
+
+    <div class="card-header">
+      Department Material Dispensing
+    </div>
+
+    <form onsubmit="dispenseDepartmentMaterial(event)">
+
+      <div class="grid-3">
+
+        <div class="form-group">
+
+          <label>
+            Hospital Department
+          </label>
+
+          <select id="pharm-department-select">
+
+            <option value="">
+              Select Department
+            </option>
+
+          </select>
+
+        </div>
+
+        
+        <div class="form-group">
+
+  <label>
+    Search Material / Item
+  </label>
+
+  <input
+    type="text"
+    id="pharm-department-item-search"
+    placeholder="Search inventory item..."
+    autocomplete="off"
+  >
+
+  <input
+    type="hidden"
+    id="pharm-department-item"
+    value=""
+  >
+
+  <div
+    id="pharm-department-item-results"
+    class="hms-extracted-style-42"
+  ></div>
+
+</div>
+        <div class="form-group">
+
+          <label>
+            Dispensing Unit
+          </label>
+
+          <select id="pharm-department-unit">
+
+            <option value="unit">
+              Units
+            </option>
+
+            <option>
+              Boxes
+            </option>
+            
+            <option value="strip">
+              Strips
+            </option>
+          </select>
+
+        </div>
+
+      </div>
+
+      <div class="grid-3">
+
+        <div class="form-group">
+
+          <label>
+            Quantity
+          </label>
+
+          <input
+            type="number"
+            id="pharm-department-qty"
+            min="1"
+            value="1"
+          >
+
+        </div>
+
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        Dispense Material to Department
+      </button>
+
+    </form>
+
+  </div>
+  </div>
+
+<div id="admin-inv" class="tab-content">
+
+          <div class="card inventory-page">
+
+    
+            <div class="card-header inventory-header">
+    
+              <span>Central Inventory Management</span>
+
+        <!-- STOCK LEDGER BUTTON -->
+      
+        <button
+        type="button"
+        class="btn btn-primary inventory-ledger-btn"
+        onclick="openStockLedger()"
+        
+        >
+        📋 Stock Control Ledger
+        </button>
+    
+      </div>
+
+    <!-- =================================================
+         ADD INVENTORY ITEM
+    ================================================== -->
+
+    <div class="inventory-form-wrapper">
+
+      <h3>Add Inventory Item</h3>
+
+      <form
+        id="inventory-form"
+        onsubmit="addInventoryItem(event)"
+      >
+
+        <div class="grid-2">
+
+          <!-- ITEM CODE -->
+          <div class="form-group">
+
+            <label for="inv-code">
+              Item Code
+            </label>
+
+            <input
+              type="text"
+              id="inv-code"
+              required
+              placeholder="INV-1001"
+            >
+
+          </div>
+
+          <!-- ITEM NAME -->
+          <div class="form-group">
+
+            <label for="inv-name">
+              Item Name
+            </label>
+
+            <input
+              type="text"
+              id="inv-name"
+              required
+              placeholder="Paracetamol 500mg"
+            >
+
+          </div>
+
+          <!-- CATEGORY -->
+          <div class="form-group">
+
+            <label for="inv-cat">
+              Inventory Category
+            </label>
+
+            <select
+              id="inv-cat"
+              required
+              onchange="handleInventoryCategoryChange()"
+            >
+
+              <option value="">
+                -- Select Category --
+              </option>
+
+              <option value="Drug Stock">
+                Drug Stock
+              </option>
+
+              <option value="Medical Supplies">
+                Medical Supplies
+              </option>
+
+              <option value="Equipment">
+                Equipment
+              </option>
+
+            </select>
+
+          </div>
+
+          <!-- DRUG SUBCATEGORY -->
+          <div
+            class="form-group hms-extracted-style-43"
+            id="drug-type-wrapper"
+            
+          >
+
+            <label for="inv-drug-type">
+              Drug Type
+            </label>
+
+            <select
+              id="inv-drug-type"
+              onchange="updateDrugValuationMethod()"
+            >
+
+              <option value="">
+                -- Select Drug Type --
+              </option>
+
+              <option value="tablets">
+                Tablets
+              </option>
+
+              <option value="syrups">
+                Syrups
+              </option>
+
+              <option value="cream">
+                Cream
+              </option>
+
+            </select>
+
+          </div>
+
+          <!-- VALUATION METHOD -->
+          <div class="form-group">
+
+            <label for="inv-valuation-method">
+              Valuation Method
+            </label>
+
+            <select
+              id="inv-valuation-method"
+              required
+            >
+
+              <option value="">
+                -- Select Valuation Method --
+              </option>
+
+            </select>
+
+          </div>
+
+          <!-- MEDICINE COST / DISPENSING UNIT -->
+          <div class="form-group" id="inv-price-wrapper" style="display:none;">
+            <label id="inv-price-label" for="inv-price-per-unit">Cost per dispensing unit</label>
+            <input type="number" id="inv-price-per-unit" min="0" step="0.01" placeholder="Enter price" value="0">
+            <small id="inv-price-help">Enter the stocking cost for one dispensing unit. This rate is used on the patient's pharmacy bill.</small>
+          </div>
+          <div class="form-group" id="inv-price-box-wrapper" style="display:none;">
+            <label for="inv-price-per-box">Cost per complete box</label>
+            <input type="number" id="inv-price-per-box" min="0" step="0.01" placeholder="Enter cost per box">
+            <small>Saved separately from the strip cost. Dispensing one box bills this box cost.</small>
+          </div>
+
+          <!-- TABLETS PER BOX -->
+          <div
+            class="form-group hms-extracted-style-44"
+            id="tablet-box-wrapper"
+            
+          >
+
+            <label for="inv-strips-per-box">
+              Strips per Box
+            </label>
+
+            <input
+              type="number"
+              id="inv-strips-per-box"
+              min="1"
+              step="1"
+              placeholder="e.g. 10"
+            >
+
+            <small>
+              Used to calculate complete boxes from strips.
+            </small>
+
+          </div>
+
+          <!-- QUANTITY -->
+          <div class="form-group">
+
+            <label for="inv-qty">
+              Quantity
+            </label>
+
+            <input
+              type="number"
+              id="inv-qty"
+              min="0"
+              step="1"
+              required
+              placeholder="Enter quantity"
+            >
+
+          </div>
+
+          <!-- REORDER LEVEL -->
+          <div class="form-group">
+
+            <label for="inv-reorder">
+              Reorder Level
+            </label>
+
+            <input
+              type="number"
+              id="inv-reorder"
+              min="0"
+              step="1"
+              required
+              placeholder="Minimum stock level"
+            >
+
+          </div>
+
+          <!-- EXPIRY DATE -->
+          <div class="form-group">
+            <label for="inv-expiry-date">Expiry Date (if applicable)</label>
+            <input type="date" id="inv-expiry-date" aria-describedby="inv-expiry-help">
+            <small id="inv-expiry-help">For medicines and other date-limited stock, enter the batch expiry date.</small>
+          </div>
+
+          <!-- SUPPLIER -->
+          <div class="form-group">
+
+            <label for="inv-supplier">
+              Supplier
+            </label>
+
+            <input
+              type="text"
+              id="inv-supplier"
+              placeholder="Vendor Name"
+            >
+
+          </div>
+
+        </div>
+
+        <!-- =================================================
+             TABLET INFORMATION
+        ================================================== -->
+
+        <div
+          id="tablet-valuation-note"
+          class="inventory-info-box hms-extracted-style-45"
+          
+        >
+
+          <strong>Tablet Stock Control</strong>
+
+          <p>
+            Tablets are controlled in strips. The system will use
+            the number of strips per box to determine complete
+            boxes.
+          </p>
+
+          <p>
+            Example: 10 strips = 1 box.
+          </p>
+
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-success"
+        >
+          Save Item to Inventory
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+  <!-- =====================================================
+       FULL-SCREEN STOCK CONTROL LEDGER
+  ====================================================== -->
+
+  <div
+    id="stock-ledger-overlay"
+    class="stock-ledger-overlay"
+    aria-hidden="true"
+  >
+
+    <div class="stock-ledger-container">
+
+      <!-- LEDGER HEADER -->
+
+      <div class="stock-ledger-header">
+
+        <div>
+
+          <h2>
+            Stock Control Ledger
+          </h2>
+
+          <small>
+            Central Hospital Inventory
+          </small>
+
+        </div>
+
+        <button
+          type="button"
+          class="stock-ledger-close"
+          onclick="closeStockLedger()"
+          aria-label="Close Stock Control Ledger"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <!-- =================================================
+           DRUG STOCK
+      ================================================== -->
+
+      <section class="ledger-category ledger-drug-stock">
+
+        <div class="ledger-category-header">
+          <span>💊 Drug Stock</span>
+        </div>
+
+        <div class="ledger-table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>Code</th>
+
+                <th>Name</th>
+
+                <th>Valuation Method</th>
+
+                <th>Stock</th>
+
+                <th>Reorder Level</th>
+
+                <th>Supplier</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody
+              id="admin-inv-drug-table"
+            ></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           MEDICAL SUPPLIES
+      ================================================== -->
+
+      <section class="ledger-category ledger-medical-supplies">
+
+        <div class="ledger-category-header">
+          <span>🩹 Medical Supplies</span>
+        </div>
+
+        <div class="ledger-table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>Code</th>
+
+                <th>Name</th>
+
+                <th>Valuation Method</th>
+
+                <th>Stock</th>
+
+                <th>Reorder Level</th>
+
+                <th>Supplier</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody
+              id="admin-inv-supplies-table"
+            ></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           EQUIPMENT
+      ================================================== -->
+
+      <section class="ledger-category ledger-equipment">
+
+        <div class="ledger-category-header">
+          <span>⚙️ Equipment</span>
+        </div>
+
+        <div class="ledger-table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>Code</th>
+
+                <th>Name</th>
+
+                <th>Valuation Method</th>
+
+                <th>Stock</th>
+
+                <th>Reorder Level</th>
+
+                <th>Supplier</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody
+              id="admin-inv-equipment-table"
+            ></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </div>
+
+</div>
+
+  </div>
+
+</div>
+
+      <!-- =====================================================
+      9. RADIOLOGY MODULE
+      ====================================================== -->
+      <div id="mod-radiology" class="module-view">
+        <div class="card">
+          <div class="card-header">Radiology Imaging & Reporting</div>
+
+            <form onsubmit="saveRadiologyResult(event)">
+
+              <div class="form-group">
+                <label>Select Pending Examination Request</label>
+
+                  <select id="rad-request-select">
+                    <option value="">Loading radiology queue...</option>
+                  </select>
+              </div>
+
+              <div id="rad-doctor-orders" class="hms-order-panel">
+                <strong>Doctor's Radiology Order</strong>
+                <span>Select a pending examination request.</span>
+              </div>
+
+              <div class="grid-2">
+
+                <div class="form-group">
+                  <label>Imaging Scan Upload</label>
+
+                  <input
+                    type="file"
+                    id="rad-image"
+                    accept="image/*,.pdf"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label>Radiologist Summary / Findings</label>
+
+                  <textarea
+                    id="rad-findings"
+                    rows="3"
+                    placeholder="Enter imaging observations..."
+                  >       
+                  </textarea>
+                </div>
+
+              </div>
+
+              <button class="btn btn-success">
+              Submit Radiology Findings
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+      <!-- =====================================================
+           10. OPERATING THEATRE MODULE
+      ====================================================== -->
+      <div id="mod-theatre" class="module-view">
+        <div class="card">
+          <div class="card-header">Operating Theatre Booking & Surgical Record</div>
+          <form onsubmit="saveSurgicalRecord(event)">
+            <div id="theatre-doctor-notes" class="hms-clinical-note-panel">
+              <strong>Doctor's Referral / Surgical Notes:</strong>
+              <span>Select a patient to view doctor's instructions.</span>
+            </div>
+
+            <div class="grid-3">
+              <div class="form-group">
+                <label>Select Patient (Referred to OT Only)</label>
+                <select id="ot-patient-select" onchange="loadTheatreClinicalInformation()"></select>
+              </div>
+              <div class="form-group">
+                <label>Procedure Scheduled</label>
+                <input type="text" id="ot-procedure" required placeholder="Procedure name">
+              </div>
+              <div class="form-group">
+                <label>Consent Signed?</label>
+                <select id="ot-consent">
+                  <option>Yes - Form Attached</option>
+                  <option>No</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Lead Surgeon</label>
+                <select id="ot-surgeon"></select>
+              </div>
+              <div class="form-group">
+                <label>Anaesthetist</label>
+                <input type="text" id="ot-anaesthetist" placeholder="Dr. Name">
+              </div>
+              <div class="form-group">
+                <label>Anaesthesia Type</label>
+                <select id="ot-anaesthesia-type">
+                  <option>General Anaesthesia</option>
+                  <option>Spinal Block</option>
+                  <option>Local</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>After-theatre destination</label>
+              <select id="ot-post-op-destination">
+                <option value="">Keep current care pathway</option>
+                <option value="nurse">Refer to Nursing Ward</option>
+              </select>
+              <small>If Nursing Ward is selected, the patient will enter the nurse referral queue after the theatre record is saved.</small>
+            </div>
+
+            <div class="form-group">
+              <label>Operation & Recovery Notes</label>
+              <textarea id="ot-notes" rows="2" placeholder="Record intraoperative details and recovery status..."></textarea>
+            </div>
+
+            <button class="btn btn-warning">Schedule & Complete Surgical Record</button>
+          </form>
+        </div>
+      </div>
+      <!-- =====================================================
+     ACCOUNTS MODULE
+====================================================== -->
+<div id="mod-opd" class="module-view">
+  <div class="hms-tab-group" id="accounts-tabs">
+    <div class="sub-tabs" role="tablist" aria-label="Finance">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" onclick="switchHmsNestedTab(this,'accounts-patient-billing')">Patients Billing</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'accounts-dispensing-requests')">Funds Dispensing Documents</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'accounts-dispensing-template')">Dispensing Template</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'accounts-forwarding')">Forwarding</button>
+    </div>
+    <section id="accounts-forwarding" class="tab-content" role="tabpanel" hidden><div class="card department-chat-panel" data-department-chat data-forwarding-store="finance"><div class="card-header">Forwarding</div><p class="hms-office-intro">WhatsApp-style shared conversation for Hospital Administration, Finance and Procurement. Send a message and optional attachment together.</p><form data-chat-send-form enctype="multipart/form-data"><div class="department-chat-compose-row"><label>Send to<select name="recipient_department" required><option value="">Choose department</option><option value="hospital_administration">Hospital Administration</option><option value="accounts">Finance</option><option value="procurement">Procurement</option></select></label><div class="department-chat-file-controls"><label>Attach any file (optional)<input name="file" type="file"></label><button class="btn btn-secondary" type="button" data-chat-store-picker>Choose from Funds Dispensing Documents</button><span data-chat-selected-store-file>No document selected from the store.</span><input type="hidden" name="accounts_dispensing_document_id" value=""><input type="hidden" name="convert_to_pdf" value="yes"></div></div><textarea name="message" rows="3" maxlength="10000" placeholder="Type a message…"></textarea><label class="department-chat-title-label">Attachment title<input name="title" maxlength="240" placeholder="Optional title"></label><p class="hms-muted">Each forwarding adds one signed-by stamp with your name, role and date on the document.</p><div class="department-chat-actions"><button class="btn btn-primary" type="submit">Send</button><button class="btn btn-secondary" type="button" data-chat-refresh>Refresh</button></div></form><div data-chat-status role="status" aria-live="polite"></div><h4>Conversation history</h4><div class="department-chat-history" data-chat-history>Loading conversation…</div></div></section>
+    <section id="accounts-patient-billing" class="tab-content active" role="tabpanel">
+
+  <div class="card">
+
+    <div class="card-header">
+      Finance - Patient Records & Billing
+    </div>
+
+    <!-- =================================================
+         PATIENT SELECTION
+    ================================================== -->
+    <div
+      class="hms-extracted-style-46"
+    >
+
+      <label
+      for="opd-patient-select"
+      class="hms-extracted-style-47"
+      >
+        Retrieve Patient Billing Card (Any Stage)
+      </label>
+
+      <select
+        id="opd-patient-select"
+        class="form-control hms-extracted-style-48"
+        
+      >
+
+        <option value="">
+          -- Select Patient --
+        </option>
+
+      </select>
+
+    </div>
+
+    <!-- =================================================
+         ACCOUNTS REPORT AREA
+    ================================================== -->
+    <div
+      id="medical-reports-list"
+      class="hms-extracted-style-49"
+    >
+
+      <!-- =================================================
+           EMPTY STATE
+      ================================================== -->
+      <div
+        id="opd-empty-state"
+        class="hms-extracted-style-50"
+      >
+
+        <div>
+
+          <h3
+            class="hms-extracted-style-51"
+          >
+            Finance Patient Records
+          </h3>
+
+          <p class="hms-extracted-style-52">
+            Select a patient from any stage of the care journey to retrieve the same billing card and all recorded charges.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+    </section>
+    <section id="accounts-dispensing-requests" class="tab-content" role="tabpanel" hidden>
+      <div class="card hms-admin-window"><div class="card-header">Funds Dispensing Document Store</div><p class="hms-office-intro">Saved vouchers appear here. Search the store to review, open, print or select a voucher for forwarding.</p><div class="hms-admin-filter-row"><label for="hms-fund-store-search">Search documents</label><input id="hms-fund-store-search" type="search" placeholder="Reference, recipient, purpose or approver"></div><div id="hms-fund-store-documents" class="hms-fund-documents" aria-live="polite">Loading saved vouchers…</div><p id="hms-fund-store-total" class="hms-muted"></p></div>
+    </section>
+    <section id="accounts-dispensing-template" class="tab-content" role="tabpanel" hidden>
+      <div class="card hms-office-card">
+        <div class="card-header">Finance Dispensing Voucher</div>
+        <p class="hms-office-intro">Create a voucher here. Every saved voucher is filed in the Funds Dispensing Document Store, where you can review, print or choose it for forwarding.</p>
+        <form id="accounts-dispensing-template-form" class="hms-template-form">
+          <div class="hms-form-grid"><label>Payee / recipient<input name="recipient" required maxlength="200"></label><label>Amount<input name="amount" required type="number" min="0.01" step="0.01"></label><label>Payment method<input name="payment_method" maxlength="100" placeholder="Bank transfer, cash, cheque"></label><label>Approved by<input name="approved_by" maxlength="200"></label></div>
+          <label>Purpose / justification<textarea name="purpose" required rows="4"></textarea></label><label>Notes (optional)<textarea name="notes" rows="3"></textarea></label>
+          <div class="department-chat-actions"><button class="btn btn-primary" type="submit">Save voucher to document store</button><span id="accounts-dispensing-template-status" class="hms-muted" role="status"></span></div>
+        </form>
+      </div>
+    </section>
+</div>
+</div>
+
+
+<div id="mod-procurement" class="module-view" hidden>
+  <div class="hms-tab-group" id="procurement-tabs">
+    <div class="sub-tabs" role="tablist" aria-label="Procurement">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" onclick="switchHmsNestedTab(this,'procurement-document-scanner')">Upload Scanned Document</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'procurement-forwarding')">Forwarding</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'procurement-business-document-templates')">Business-Document Templates</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" onclick="switchHmsNestedTab(this,'procurement-document-store')">Document Store Grouped by Dates</button>
+    </div>
+    <section id="procurement-forwarding" class="tab-content" role="tabpanel" hidden><div class="card department-chat-panel" data-department-chat data-forwarding-store="procurement"><div class="card-header">Forwarding</div><p class="hms-office-intro">WhatsApp-style shared conversation for Hospital Administration, Finance and Procurement. Send a message and optional attachment together.</p><form data-chat-send-form enctype="multipart/form-data"><div class="department-chat-compose-row"><label>Send to<select name="recipient_department" required><option value="">Choose department</option><option value="hospital_administration">Hospital Administration</option><option value="accounts">Finance</option><option value="procurement">Procurement</option></select></label><div class="department-chat-file-controls"><label>Attach any file (optional)<input name="file" type="file"></label><button class="btn btn-secondary" type="button" data-chat-store-picker>Choose from Procurement Document Store</button><span data-chat-selected-store-file>No document selected from the store.</span><input type="hidden" name="secretariate_document_id" value=""><input type="hidden" name="procurement_document_id" value=""><input type="hidden" name="convert_to_pdf" value="yes"></div></div><textarea name="message" rows="3" maxlength="10000" placeholder="Type a message…"></textarea><label class="department-chat-title-label">Attachment title<input name="title" maxlength="240" placeholder="Optional title"></label><p class="hms-muted">Each forwarding adds one signed-by stamp with your name, role and date on the document.</p><div class="department-chat-actions"><button class="btn btn-primary" type="submit">Send</button><button class="btn btn-secondary" type="button" data-chat-refresh>Refresh</button></div></form><div data-chat-status role="status" aria-live="polite"></div><h4>Conversation history</h4><div class="department-chat-history" data-chat-history>Loading conversation…</div></div></section>
+    <section id="procurement-document-scanner" class="tab-content active" role="tabpanel">
+      <div class="card hms-bizdoc-card">
+        <div class="card-header">Upload Scanned Document</div>
+        <form id="hmsProcurementScannerForm" class="hms-scanned-upload-form">
+          <label for="hmsProcScanFile" class="hms-scanned-upload-label">Choose document file</label>
+          <input id="hmsProcScanFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.doc,.docx,.xls,.xlsx,.odt,.ods,.txt,.rtf" required>
+          <small>Upload PDF, image, Word, spreadsheet or text files up to 100 MB. Files are stored in the Procurement document store.</small>
+          <input id="hmsProcScanTitle" type="hidden" value="Scanned procurement document">
+          <input id="hmsProcScanType" type="hidden" value="SCANNED_DOCUMENT">
+          <input id="hmsProcScanDate" type="hidden" value="">
+          <input id="hmsProcScanParty" type="hidden" value="">
+          <input id="hmsProcScanDepartment" type="hidden" value="">
+          <input id="hmsProcScanNotes" type="hidden" value="">
+          <button type="submit" class="btn btn-primary" id="hmsProcScanSave">Upload Document</button>
+          <button type="button" id="hmsProcScanClear" hidden>Clear</button>
+        </form>
+        <div id="hmsProcScanStatus" hidden></div>
+        <div id="hmsProcScanPreview" hidden></div>
+      </div>
+    </section>
+    <section id="procurement-business-document-templates" class="tab-content" role="tabpanel">
+  <div class="card hms-bizdoc-card">
+    <div class="card-header">Business-Document Templates</div>
+    <p class="hms-bizdoc-intro">Create general business documents or hospital-specific procurement and administration records. Each document type displays its own fields, item table, calculations and print layout.</p>
+    <div class="hms-bizdoc-type-grid" id="hmsBusinessDocumentTypes">
+      <button type="button" class="hms-bizdoc-type" data-doc-type="RFQ"><strong>Request for Quotation</strong><span>Invite suppliers to quote</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="QUOTATION"><strong>Quotation</strong><span>Supplier or sales quotation</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="PURCHASE_ORDER"><strong>Purchase Order</strong><span>Authorize a purchase</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="SALES_ORDER"><strong>Sales Order</strong><span>Record a customer order</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="CONTRACT"><strong>Contract</strong><span>Agreement and terms</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="DELIVERY_NOTE"><strong>Delivery Note</strong><span>Goods dispatched or delivered</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="WAYBILL"><strong>Waybill</strong><span>Transport and shipment record</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="INVOICE"><strong>Invoice</strong><span>Request payment for goods/services</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="GRN"><strong>Goods Received Note</strong><span>Confirm goods received</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="PAYMENT_PROOF"><strong>Payment Proof</strong><span>Payment transaction evidence</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="RECEIPT"><strong>Receipt</strong><span>Acknowledge money received</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="CREDIT_NOTE"><strong>Credit Note</strong><span>Credit or adjustment record</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="DEBIT_NOTE"><strong>Debit Note</strong><span>Debit or adjustment record</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="TAX_INVOICE"><strong>Tax Invoice</strong><span>Invoice with tax details</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="CUSTOMS_DOCUMENT"><strong>Customs Document</strong><span>Import/export declaration details</span></button>
+      <button type="button" class="hms-bizdoc-type" data-doc-type="WARRANTY"><strong>Warranty / Service Report</strong><span>Service, inspection and warranty</span></button>
+    </div>
+  </div>
+
+  <div class="card hms-bizdoc-card" id="hmsBusinessDocumentFormCard">
+    <div class="card-header" id="hmsBusinessDocumentHeading">Select a Document Type</div>
+    <p id="hmsBusinessDocumentDescription" class="hms-bizdoc-intro">Choose one of the document types above to begin.</p>
+    <form id="hmsBusinessDocumentForm">
+      <input type="hidden" id="hmsBizDocType" name="document_type">
+      <div class="hms-bizdoc-section-title">Document settings</div>
+      <div class="hms-bizdoc-form-grid">
+        <div class="form-group"><label for="hmsBizDocNumber">Document Number</label><input id="hmsBizDocNumber" name="document_number" readonly placeholder="Generated when document type is selected"><small>Automatically generated with a prefix for this document type.</small></div>
+        <div class="form-group"><label for="hmsBizDocDate">Document Date *</label><input type="date" id="hmsBizDocDate" name="document_date" required></div>
+        <div class="form-group" data-common-field="department"><label for="hmsBizDocDepartment">Department / Business Unit</label><input id="hmsBizDocDepartment" name="department" placeholder="Department / unit"></div>
+        <div class="form-group"><label for="hmsBizDocCurrency">Currency</label><input id="hmsBizDocCurrency" name="currency" value="UGX" maxlength="8"></div>
+        <div class="form-group" data-common-field="reference"><label for="hmsBizDocReference">External / Reference Number</label><input id="hmsBizDocReference" name="reference"></div>
+        <div class="form-group"><label for="hmsBizDocStatus">Document Status</label><select id="hmsBizDocStatus" name="status"><option>Draft</option><option>Issued</option><option>Approved</option><option>Completed</option><option>Cancelled</option></select></div>
+      </div>
+      <div class="hms-bizdoc-section-title">Organization details</div>
+      <div class="hms-bizdoc-form-grid">
+        <div class="form-group"><label for="hmsBizDocOrganization">Organization / Facility Name</label><input id="hmsBizDocOrganization" name="organization_name" placeholder="Company or hospital name"></div>
+        <div class="form-group"><label for="hmsBizDocOrgPhone">Organization Phone</label><input id="hmsBizDocOrgPhone" name="organization_phone" type="tel"></div>
+        <div class="form-group"><label for="hmsBizDocOrgEmail">Organization Email</label><input id="hmsBizDocOrgEmail" name="organization_email" type="email"></div>
+        <div class="form-group"><label for="hmsBizDocOrgTax">Organization Tax / Registration Number</label><input id="hmsBizDocOrgTax" name="organization_tax_number"></div>
+        <div class="form-group hms-bizdoc-wide"><label for="hmsBizDocOrgAddress">Organization Address</label><input id="hmsBizDocOrgAddress" name="organization_address"></div>
+      </div>
+      <div id="hmsBizDocSpecificFields" class="hms-bizdoc-form-grid"></div>
+      <div class="hms-bizdoc-section-title" id="hmsBizDocPartySectionTitle">Other party details</div>
+      <div class="hms-bizdoc-form-grid">
+        <div class="form-group" data-common-field="party"><label id="hmsBizDocPartyLabel" for="hmsBizDocParty">Supplier / Customer / Other Party</label><input id="hmsBizDocParty" name="party_name"></div>
+        <div class="form-group" data-common-field="party_contact"><label for="hmsBizDocContact">Party Contact</label><input id="hmsBizDocContact" name="party_contact"></div>
+        <div class="form-group" data-common-field="party_address"><label for="hmsBizDocAddress">Party Address</label><input id="hmsBizDocAddress" name="party_address"></div>
+        <div class="form-group" data-common-field="terms"><label id="hmsBizDocTermsLabel" for="hmsBizDocTerms">Terms</label><input id="hmsBizDocTerms" name="terms"></div>
+      </div>
+      <div id="hmsBizDocLineItemsSection" class="hms-bizdoc-line-items-section">
+        <div class="hms-bizdoc-section-title" id="hmsBizDocItemsTitle">Items / Services</div>
+        <div class="hms-bizdoc-table-wrap"><table class="hms-bizdoc-items-table"><thead><tr id="hmsBizDocItemsHeader"><th>Description / Item</th><th>Specification / Code</th><th>Quantity</th><th>Unit</th><th class="hms-bizdoc-price-col">Unit Price</th><th class="hms-bizdoc-price-col">Amount</th><th class="no-print">Action</th></tr></thead><tbody id="hmsBizDocItemsBody"></tbody></table></div>
+        <div class="hms-bizdoc-actions no-print"><button type="button" class="btn" id="hmsBizDocAddItem">+ Add Item / Service</button></div>
+      </div>
+      <div class="hms-bizdoc-form-grid">
+        <div class="form-group hms-bizdoc-wide" data-common-field="description"><label for="hmsBizDocDescription">Purpose / Narrative / Additional Description</label><textarea id="hmsBizDocDescription" name="description" rows="3" placeholder="Scope, purpose, background or additional description"></textarea></div>
+        <div class="form-group" data-common-field="subtotal"><label for="hmsBizDocSubtotal">Subtotal</label><input id="hmsBizDocSubtotal" name="subtotal" type="number" min="0" step="0.01" value="0"></div>
+        <div class="form-group" data-common-field="tax"><label for="hmsBizDocTax">Tax / Charges / Adjustments</label><input id="hmsBizDocTax" name="tax" type="number" min="0" step="0.01" value="0"></div>
+        <div class="form-group" data-common-field="total"><label for="hmsBizDocTotal">Grand Total</label><input id="hmsBizDocTotal" name="grand_total" type="number" min="0" step="0.01" value="0" readonly></div>
+        <div class="form-group hms-bizdoc-wide" data-common-field="notes"><label for="hmsBizDocNotes">Notes / Special Conditions</label><textarea id="hmsBizDocNotes" name="notes" rows="3"></textarea></div>
+        <div class="form-group"><label for="hmsBizDocPreparedBy">Prepared By</label><input id="hmsBizDocPreparedBy" name="prepared_by"></div>
+        <div class="form-group" data-common-field="approved_by"><label for="hmsBizDocApprovedBy">Approved / Authorized By</label><input id="hmsBizDocApprovedBy" name="approved_by"></div>
+      </div>
+      <div class="hms-bizdoc-actions">
+        <button type="button" class="btn btn-primary" id="hmsBizDocPreviewBtn">Preview Document</button>
+        <button type="button" class="btn btn-success" id="hmsBizDocSaveBtn">Save to Document Store</button>
+        <button type="reset" class="btn" id="hmsBizDocClearBtn">Clear Form</button>
+      </div>
+    </form>
+  </div>
+  <div class="card hms-bizdoc-card" id="hmsBizDocPreviewPanel" hidden>
+    <div class="card-header">Document View / Print Preview</div>
+    <div id="hmsBizDocPreviewContent" class="hms-bizdoc-paper"></div>
+    <div class="hms-bizdoc-actions no-print">
+      <button type="button" class="btn btn-primary" id="hmsBizDocPrintPreviewBtn">Print Document</button>
+      <button type="button" class="btn" id="hmsBizDocClosePreviewBtn">Close Preview</button>
+    </div>
+  </div>
+</section>
+    <section id="procurement-document-store" class="tab-content" role="tabpanel">
+  <div class="card hms-bizdoc-card">
+    <div class="card-header">Document Store — Grouped by Dates</div>
+    <p class="hms-bizdoc-intro">Browse documents saved from Business-Document Templates. Search by document number, party, department, date, status or document type. Open a saved document to view or print it.</p>
+    <div class="hms-bizdoc-store-controls">
+      <input type="search" id="hmsBizDocStoreSearch" placeholder="Search documents..." aria-label="Search saved documents">
+      <select id="hmsBizDocStoreType" aria-label="Filter by document type"><option value="">All Document Types</option></select>
+      <label class="hms-bizdoc-filter-label">Date from<input type="date" id="hmsBizDocStoreDateFrom" aria-label="Filter from document date"></label>
+      <label class="hms-bizdoc-filter-label">Date to<input type="date" id="hmsBizDocStoreDateTo" aria-label="Filter to document date"></label>
+      <label class="hms-bizdoc-filter-label">Month<select id="hmsBizDocStoreMonth" aria-label="Filter by month"><option value="">All months</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></label>
+      <label class="hms-bizdoc-filter-label">Year<input type="number" id="hmsBizDocStoreYear" min="1900" max="2200" step="1" placeholder="Any year" aria-label="Filter by year"></label>
+      <button type="button" class="btn" id="hmsBizDocStoreClear">Clear Filters</button>
+    </div>
+    <div id="hmsBizDocStoreCount" class="hms-bizdoc-count">0 documents</div>
+    <div id="hmsBizDocStoreList"><div class="hms-bizdoc-empty">No documents have been saved yet.</div></div>
+  </div>
+  <div class="card hms-bizdoc-card" id="hmsBizDocStoredView" hidden>
+    <div class="card-header">Saved Document</div>
+    <div id="hmsBizDocStoredViewContent" class="hms-bizdoc-paper"></div>
+    <div class="hms-bizdoc-actions no-print">
+      <button type="button" class="btn btn-primary" id="hmsBizDocStoredPrint">Print Document</button>
+      <button type="button" class="btn" id="hmsBizDocStoredClose">Close</button>
+    </div>
+  </div>
+</section>
+  </div>
+</div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =========================================================
+     HMS STATIC JAVASCRIPT
+========================================================== -->
+
+
+
+<!-- Backend-connected Secretariate, Procurement and Guidance & Counseling functions. -->
+
+
+
+
+
+
+
+
+
+
+  <script src="{{ url_for('static', filename='js/hms.js', v='20261116-doctor-round-save-visibility-v23') }}" defer></script>
+
+<div id="department-chat-store-dialog" class="department-chat-store-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="department-chat-store-title"><div class="department-chat-store-dialog-card"><div class="card-header" id="department-chat-store-title">Choose from Secretariat Document Store</div><input type="search" data-chat-store-search placeholder="Search document title or type"><div data-chat-store-list class="department-chat-store-list">Loading documents…</div><div class="department-chat-actions"><button type="button" class="btn btn-secondary" data-chat-store-close>Close</button></div></div></div>
+</body>
+</html>
